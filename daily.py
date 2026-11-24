@@ -39,4 +39,15 @@ env = dict(os.environ, GSR_THRU=thru, GSR_ISO=today_iso, GSR_TXT=today_txt)
 shutil.copy(W + 'site_v63_backup.html', W + 'site/index.html')
 subprocess.run(['python3', W + 'build_site_daily.py'], check=True, env=env)
 print('updated', len(E), 'players; new games for', len(changed), ':', ', '.join(changed))
-json.dump(changed, open(W + 'changed.json', 'w'))
+games = []
+for n in changed:
+    a, o = old.get(n), E[n]
+    if not a or o['g'] - a['g'] != 1: continue
+    t = lambda d, k: d[k] * d['g']
+    games.append(dict(name=n, rank=next(p['rank'] for p in board if p['name'] == n),
+        pts=round(t(o,'pts')-t(a,'pts')), reb=round(t(o,'reb')-t(a,'reb')), ast=round(t(o,'ast')-t(a,'ast')),
+        stl=round(t(o,'stl')-t(a,'stl')), blk=round(t(o,'blk')-t(a,'blk')), tpm=o['tpm']-a['tpm'], tpa=o['tpa']-a['tpa'],
+        min=round(o['min']-a['min'])))
+games.sort(key=lambda x: -x['pts'])
+json.dump(games, open(W + 'last_games.json', 'w'), indent=1)
+print('last-game lines (from total deltas):'); [print(' ', g) for g in games[:12]]
