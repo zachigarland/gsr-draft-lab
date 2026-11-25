@@ -138,6 +138,32 @@ GSR.resolveOwners = function(order){
   owner.SAS = P.SAS<=16 ? "SAC" : "OKC";
   return order.map((t,i)=>({pick:i+1, orig:t, owner:owner[t]}));
 };
+/* ---------- 2027 second-round pick ownership ----------
+   Source: RealGM future draft picks by team (checked Nov 24, 2026). Round 2 goes in reverse
+   order of record for all 30 teams. Some conditions depend on where first-round picks land. */
+GSR.R2_ASOF = "Nov 24, 2026 (RealGM)";
+GSR.round2Order = teams => GSR.worstFirst(teams).map(x=>x.t);
+GSR.resolveOwners2 = function(order2, r1){
+  const P = {}; order2.forEach((t,i)=>P[t]=i+31);
+  const R1 = {}; (r1||[]).forEach(p=>R1[p.orig]=p.pick);
+  const owner = Object.fromEntries(order2.map(t=>[t,t])), note = {};
+  const by = arr => arr.slice().sort((a,b)=>P[a]-P[b]);
+  const pair = (a,b,best,other,txt) => { const s=by([a,b]); owner[s[0]]=best; owner[s[1]]=other; note[a]=note[b]=txt; };
+  if(P.ATL>=56){ owner.ATL="DAL"; } note.ATL="Atlanta keeps it at 31-55, Dallas gets it at 56-60";
+  pair("BOS","ORL","UTA","PHX","Better of BOS/ORL to Utah, other to Phoenix");
+  pair("BKN","DAL","WAS","MIL","Better of BKN/DAL to Washington, other to Milwaukee");
+  pair("GSW","PHX","PHI","WAS","Better of GSW/PHX to Philadelphia, other to Washington");
+  { const s=by(["NOP","POR"]); owner[s[0]]="CHA"; owner[s[1]] = P[s[1]]>=56 ? "HOU" : "POR"; note.NOP=note.POR="Better of NOP/POR to Charlotte, other to Portland (Houston at 56-60)"; }
+  { const s=by(["OKC","HOU","IND","MIA"]); owner[s[0]]="PHI"; owner[s[1]]="NOP"; owner[s[2]]="NYK";
+    const t=by([s[3],"SAS"]); owner[t[0]]="SAS"; owner[t[1]]="MIA";
+    ["OKC","HOU","IND","MIA","SAS"].forEach(x=>note[x]="OKC/HOU/IND/MIA group: best to PHI, 2nd NOP, 3rd NYK, 4th vs SAS"); }
+  const sas16 = R1.SAS!=null && R1.SAS<=16;
+  owner.CHA = sas16 ? "OKC" : "SAC"; note.CHA = "Tied to where San Antonio's first lands";
+  if(sas16) owner.SAC = "OKC"; note.SAC = "To OKC if San Antonio's first lands 1-16";
+  owner.LAL = (R1.LAL!=null && R1.LAL>4) ? "BKN" : "MEM"; note.LAL = "Tied to whether the Lakers' first conveys";
+  Object.assign(owner,{CLE:"CHI",CHI:"OKC",DEN:"UTA",LAC:"UTA",MEM:"CHA",MIN:"POR",UTA:"IND",WAS:"NYK"});
+  return order2.map((t,i)=>({pick:i+31, orig:t, owner:owner[t], note:note[t]||""}));
+};
 GSR.ownerLabel = p => p.owner===p.orig ? GSR.nbaChip(p.owner) : `${GSR.nbaChip(p.owner)} <span class="small">via ${p.orig}</span>`;
 
 /* ---------- prospect board (read from the main page so it stays current) ---------- */

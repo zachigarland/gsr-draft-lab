@@ -65,6 +65,9 @@
       <h2>Full first round</h2>
       <div class="scrollx"><table class="tbl" id="round"></table></div>
       <div class="note" id="ownnote"></div>
+      <h2>Second round</h2>
+      <div class="scrollx"><table class="tbl" id="round2"></table></div>
+      <div class="note">Round 2 goes in reverse order of record for all 30 teams, with no lottery. Second-round trade terms from RealGM, checked <span id="r2asof"></span>.</div>
     </div>
     <div>
       <h2 style="margin-top:6px">Lottery result</h2>
@@ -120,6 +123,9 @@ function renderRound(lotOrder){
   $("#round").innerHTML = `<tr><th class="num">Pick</th><th>Owner</th><th>Original team</th><th class="num">Rec</th><th>Pick note</th></tr>` +
     own.map((p,i)=> (i===16?`<tr class="divider"><td colspan="5">Picks 17 to 30: non-lottery teams, worst record first</td></tr>`:"") +
       `<tr><td class="num">${p.pick}</td><td>${GSR.ownerLabel(p)}</td><td>${GSR.teamName(p.orig)}</td><td class="num">${rec[p.orig].w}-${rec[p.orig].l}</td><td class="small">${GSR.OWN_NOTES[p.orig]||""}</td></tr>`).join("");
+  const r2 = GSR.resolveOwners2(GSR.round2Order(ST.teams), own);
+  $("#round2").innerHTML = `<tr><th class="num">Pick</th><th>Owner</th><th>Original team</th><th class="num">Rec</th><th>Pick note</th></tr>` +
+    r2.map(p=>`<tr><td class="num">${p.pick}</td><td>${GSR.ownerLabel(p)}</td><td>${GSR.teamName(p.orig)}</td><td class="num">${rec[p.orig].w}-${rec[p.orig].l}</td><td class="small">${p.note}</td></tr>`).join("");
   $("#ownnote").textContent = lotOrder ? "Owners above reflect your simulated lottery. Conditional picks (protections, swaps, most-favorable deals) are resolved for this exact order."
     : "Before a sim, picks 1 to 16 are listed by record, worst first. Under the 3-2-1 rules that is not the expected order, since the three worst records get fewer balls.";
 }
@@ -177,7 +183,7 @@ $("#img").onclick = async ()=>{
   GSR.download(c,"gsr-2027-lottery-sim.png");
 };
 
-$("#ownasof").textContent = GSR.OWN_ASOF;
+$("#ownasof").textContent = GSR.OWN_ASOF; $("#r2asof").textContent = GSR.R2_ASOF;
 ST = await GSR.loadStandings();
 $("#src").innerHTML = ST.live ? `Standings pulled live from ESPN (${ST.asof}). Records are current, not projected to 82 games.`
   : `<span class="flag">Live standings did not load, so this uses the ESPN snapshot from ${ST.asof}.</span>`;

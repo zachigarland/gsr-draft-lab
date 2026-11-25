@@ -45,6 +45,7 @@ details.add{margin-top:10px}
 details.add summary{cursor:pointer;color:var(--accent);font-weight:600}
 .addf{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .viewbanner{margin:12px 0}
+.r2{font-family:var(--display);font-size:24px;color:var(--navy);margin:14px 0 4px;border-top:3px solid var(--navy);padding-top:8px}
 </style>
 </head>
 <body>
@@ -68,7 +69,7 @@ details.add summary{cursor:pointer;color:var(--accent);font-weight:600}
       <div class="ctl"><span class="lab">Draft order</span>
         <div class="seg" id="o-src"><button data-v="last">My last lottery sim</button><button data-v="fresh" aria-pressed="true">New lottery sim</button><button data-v="record">By record</button></div></div>
       <div class="ctl"><span class="lab">Picks</span>
-        <div class="seg" id="o-len"><button data-v="16">Lottery (16)</button><button data-v="30" aria-pressed="true">First round (30)</button></div></div>
+        <div class="seg" id="o-len"><button data-v="16">Lottery (16)</button><button data-v="30" aria-pressed="true">First round (30)</button><button data-v="60">Two rounds (60)</button></div></div>
       <div class="ctl"><label for="o-team">You pick for</label><select id="o-team"><option value="ALL">Every team</option></select></div>
       <div class="ctl"><span class="lab">CPU drafts off</span>
         <div class="seg" id="o-cpu"><button data-v="board" aria-pressed="true">My board</button><button data-v="cons">Consensus</button><button data-v="chaos">Chaos</button></div></div>
@@ -135,7 +136,8 @@ function refreshTeams(){
   const src = segVal("o-src"), len = +segVal("o-len");
   const preview = src==="fresh" ? null : buildOrder(src);
   const sel = $("#o-team"), cur = sel.value;
-  const owners = preview ? [...new Set(preview.slice(0,len).map(p=>p.owner))] : Object.keys(GSR.NBA);
+  const pv = preview ? (len===60 ? preview.concat(GSR.resolveOwners2(GSR.round2Order(ST.teams), preview)) : preview.slice(0,len)) : null;
+  const owners = pv ? [...new Set(pv.map(p=>p.owner))] : Object.keys(GSR.NBA);
   sel.innerHTML = `<option value="ALL">Every team</option>` + owners.sort().map(t=>`<option value="${t}">${GSR.teamName(t)}</option>`).join("");
   if([...sel.options].some(o=>o.value===cur)) sel.value = cur;
   const L = GSR.store.get("gsrLottery",null);
@@ -170,7 +172,7 @@ function valueTag(k,p){
 function renderPicks(){
   $("#picks").innerHTML = M.order.map((o,k)=>{
     const p = M.picks[k] ? P(M.picks[k]) : null, clock = k===cur() && !M.view;
-    return `<div class="pi ${clock?"clock":""} ${isMine(k)&&M.team!=="ALL"?"mine":""}"><div class="n">${o.pick}</div><div>${GSR.nbaChip(o.owner)}</div>
+    return (k===30?`<div class="r2">Round 2 <span class="small">· all 30 teams, worst record first</span></div>`:"") + `<div class="pi ${clock?"clock":""} ${isMine(k)&&M.team!=="ALL"?"mine":""}"><div class="n">${o.pick}</div><div>${GSR.nbaChip(o.owner)}</div>
       <div>${p ? `<div class="pname">${GSR.esc(p.name)}${valueTag(k,p)}</div><div class="pmeta">${GSR.schoolTag(p.team)} ${GSR.esc(p.pos||"")}${o.owner!==o.orig?` · via ${o.orig}`:""}</div>`
         : `<div class="empty">${clock?"On the clock":GSR.teamName(o.owner)}${o.owner!==o.orig?` · via ${o.orig}`:""}</div>`}</div>
       <div>${p && !M.view ? `<button class="redo" data-k="${k}" title="Redo from pick ${o.pick}" aria-label="Redo from pick ${o.pick}">↺</button>`:""}</div></div>`;
@@ -240,7 +242,8 @@ function start(fromSaved){
   else {
     const len = +segVal("o-len");
     const full = buildOrder(segVal("o-src"));
-    M = {full: full.map(x=>x.orig), order: full.slice(0,len), picks:[], team:$("#o-team").value, cpu:segVal("o-cpu"), customs:[], src:segVal("o-src")};
+    const r2 = GSR.resolveOwners2(GSR.round2Order(ST.teams), full);
+    M = {full: full.map(x=>x.orig), full2: r2.map(x=>x.orig), order: len===60 ? full.concat(r2) : full.slice(0,len), picks:[], team:$("#o-team").value, cpu:segVal("o-cpu"), customs:[], src:segVal("o-src")};
   }
   $("#setup").hidden = !!M.view; $("#draft").hidden = false; $("#resume").hidden = true;
   save(); render();
@@ -250,7 +253,7 @@ function start(fromSaved){
 
 /* exports */
 function shareURL(){
-  const data = {o:M.full||M.order.map(x=>x.orig), n:total(), p:M.picks, c:(M.customs||[]).filter(c=>M.picks.includes(c.id)).map(c=>[c.id,c.name,c.team,c.pos])};
+  const data = {o:M.full||M.order.slice(0,30).map(x=>x.orig), o2: total()>30 ? M.full2 : undefined, n:total(), p:M.picks, c:(M.customs||[]).filter(c=>M.picks.includes(c.id)).map(c=>[c.id,c.name,c.team,c.pos])};
   return location.origin + location.pathname + "#m=" + enc(data);
 }
 $("#share").onclick = ()=>GSR.copy(shareURL(), "Share link copied");
@@ -262,18 +265,19 @@ $("#txt").onclick = ()=>{
 $("#again").onclick = ()=>{ GSR.store.set("gsrMock", null); location.href = location.pathname; };
 $("#img").onclick = async ()=>{
   await document.fonts.ready;
-  const n = total(), per = Math.ceil(n/2), rowH = 64, W = 1200, H = 126+30+per*rowH+20+54;
+  const n = total(), cols = n>30?3:2, per = Math.ceil(n/cols), rowH = n>30?50:64, W = 1200, H = 126+30+per*rowH+20+54, colW = (W-80-(cols-1)*20)/cols;
   const c=document.createElement("canvas"); c.width=W; c.height=H; const g=c.getContext("2d");
   g.fillStyle="#fff"; g.fillRect(0,0,W,H);
-  GSR.drawHeader(g,W,"MY 2027 MOCK DRAFT", (n===16?"Lottery":"First round")+" · board as of "+(GSR.boardDate||""));
+  GSR.drawHeader(g,W,"MY 2027 MOCK DRAFT", (n===16?"Lottery":n===30?"First round":"Two rounds")+" · board as of "+(GSR.boardDate||""));
   M.order.forEach((o,k)=>{
-    const p=P(M.picks[k]); const col=k<per?0:1, r=k%per, x=40+col*565, y=156+r*rowH;
-    g.fillStyle=r%2?"#F6F8FB":"#fff"; g.fillRect(x,y,545,rowH-6);
-    g.fillStyle="#0B2239"; g.font="34px 'Bebas Neue', Impact"; g.textAlign="center"; g.fillText(String(o.pick),x+24,y+40);
-    g.fillStyle=(GSR.NBA[o.owner]||[])[2]||"#333"; GSR.roundRect(g,x+50,y+13,60,32,5); g.fill();
-    g.fillStyle="#fff"; g.font="24px 'Bebas Neue', Impact"; g.fillText(o.owner,x+80,y+38); g.textAlign="left";
-    g.fillStyle="#0E1A26"; g.font="700 22px Barlow, Arial"; g.fillText(p.name,x+124,y+28);
-    g.fillStyle="#5A6878"; g.font="500 15px 'IBM Plex Mono'"; g.fillText(`${p.pos||""} · ${p.team||""}${o.owner!==o.orig?" · via "+o.orig:""}`.slice(0,52),x+124,y+50);
+    const p=P(M.picks[k]); const col=Math.floor(k/per), r=k%per, x=40+col*(colW+20), y=156+r*rowH, sm=cols===3;
+    g.fillStyle=r%2?"#F6F8FB":"#fff"; g.fillRect(x,y,colW,rowH-6);
+    g.fillStyle="#0B2239"; g.font=(sm?"28px":"34px")+" 'Bebas Neue', Impact"; g.textAlign="center"; g.fillText(String(o.pick),x+22,y+(sm?31:40));
+    g.fillStyle=(GSR.NBA[o.owner]||[])[2]||"#333"; GSR.roundRect(g,x+44,y+(sm?9:13),sm?48:60,sm?26:32,5); g.fill();
+    g.fillStyle="#fff"; g.font=(sm?"20px":"24px")+" 'Bebas Neue', Impact"; g.fillText(o.owner,x+(sm?68:74),y+(sm?29:38)); g.textAlign="left";
+    const tx = x+(sm?102:120);
+    g.fillStyle="#0E1A26"; g.font=(sm?"700 17px":"700 22px")+" Barlow, Arial"; g.fillText(p.name.slice(0,sm?22:30),tx,y+(sm?21:28));
+    g.fillStyle="#5A6878"; g.font=(sm?"500 12px":"500 15px")+" 'IBM Plex Mono'"; g.fillText(`${p.pos||""} · ${p.team||""}${o.owner!==o.orig?" · via "+o.orig:""}`.slice(0,sm?36:52),tx,y+(sm?37:50));
   });
   GSR.drawFooter(g,W,H);
   GSR.download(c,"gsr-2027-mock-draft.png");
@@ -308,7 +312,8 @@ if(h){
   try{
     const d = dec(h[1]);
     const customs = (d.c||[]).map(([id,name,team,pos])=>({id,name,team,pos,custom:true,rank:99,cons:99}));
-    start({full:d.o, order: GSR.resolveOwners(d.o).slice(0, d.n||d.o.length), picks: d.p.filter(id=>BY[id]||customs.find(c=>c.id===id)), team:"ALL", cpu:"board", customs, view:true});
+    const r1 = GSR.resolveOwners(d.o), ord = d.o2 ? r1.concat(GSR.resolveOwners2(d.o2, r1)) : r1;
+    start({full:d.o, full2:d.o2, order: ord.slice(0, d.n||ord.length), picks: d.p.filter(id=>BY[id]||customs.find(c=>c.id===id)), team:"ALL", cpu:"board", customs, view:true});
     $("#viewbanner").hidden = false;
     $("#viewbanner").innerHTML = `<div class="flag">You are viewing a shared mock. <a href="./">Build your own</a>.</div>`;
   }catch(e){ GSR.toast("That share link could not be read"); }
