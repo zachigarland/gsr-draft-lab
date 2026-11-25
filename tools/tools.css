@@ -8,6 +8,7 @@
   --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0;background:var(--ink);color:var(--fg)}
 body{font-family:var(--body);font-size:15px;line-height:1.45;padding:0 16px 56px}
 .wrap{max-width:1180px;margin:0 auto}
@@ -70,7 +71,7 @@ h3{font-family:var(--display);font-weight:400;font-size:22px;color:var(--navy);m
 .heat td.h{width:38px;min-width:38px;text-align:center;font-family:var(--mono);font-size:11px;padding:6px 2px}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 16px;border-radius:8px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:50}
 .toast.show{opacity:1}
-footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+.pagenote{margin-top:32px;padding-top:12px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
 @media (max-width:640px){
   body{padding:0 10px 56px}
   .sitenav a{font-size:17px;padding:5px 8px}

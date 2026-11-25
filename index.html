@@ -186,19 +186,11 @@ h1 .acc, .accent{color:var(--accent)}
 a{color:var(--blue)}
 .toast{background:var(--navy)!important;color:#fff!important}
 </style>
-<style id="gsr-sitenav">
-.gsr-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--line)}
-.gsr-top .gsr-logo{font-family:var(--display);font-size:22px;letter-spacing:.4px;color:var(--navy);text-decoration:none}
-.gsr-nav{display:flex;gap:4px;flex-wrap:wrap}
-.gsr-nav a{font-family:var(--display);font-size:18px;letter-spacing:.4px;text-decoration:none;color:var(--navy);padding:5px 10px;border-radius:6px}
-.gsr-nav a:hover{background:var(--panel-2)}
-.gsr-nav a[aria-current="page"]{background:var(--navy);color:#fff}
-.gsr-nav a.new::after{content:"NEW";font-family:var(--mono);font-size:9px;letter-spacing:.5px;background:var(--accent);color:#fff;border-radius:3px;padding:1px 4px;margin-left:5px;vertical-align:3px}
-</style>
+<style id="gsr-shell-fix">.slhead{top:var(--gsr-hd,0px)!important}</style>
+<script src="tools/shell.js?v=20261125a" defer></script>
 </head>
 <body>
 <div class="wrap">
-  <div class="gsr-top"><a class="gsr-logo" href="./">Gar's Scouting Report</a><nav class="gsr-nav" aria-label="Site"><a href="./" aria-current="page">2027 Big Board</a><a class="new" href="mock/">Mock Draft</a><a class="new" href="bigboard/">Board Builder</a><a class="new" href="lottery/">Lottery</a></nav></div>
   <header class="mast">
     <div class="brand">
       <div class="kicker">Gar's Scouting Report</div>

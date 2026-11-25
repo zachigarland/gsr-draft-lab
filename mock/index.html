@@ -12,7 +12,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../tools/tools.css?v=20261124b">
+<link rel="stylesheet" href="../tools/tools.css?v=20261125a">
 <style>
 .setup{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;align-items:end}
 .layout{display:grid;grid-template-columns:400px minmax(0,1fr);gap:18px;align-items:start;margin-top:16px}
@@ -27,7 +27,7 @@
 .redo:hover{background:var(--panel-2);color:var(--navy)}
 .vt{font-family:var(--mono);font-size:10.5px;padding:1px 5px;border-radius:4px;margin-left:4px}
 .vt.val{background:#E5F4EC;color:#1E6E41}.vt.reach{background:#FDE7E4;color:#9B2B21}
-.clockbar{position:sticky;top:0;z-index:5;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;box-shadow:0 2px 8px rgba(11,34,57,.06)}
+.clockbar{position:sticky;top:var(--gsr-hd,0px);z-index:5;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;box-shadow:0 2px 8px rgba(11,34,57,.06)}
 .clockbar .who{display:flex;align-items:center;gap:8px;font-size:15px}
 .clockbar .who b{font-family:var(--display);font-size:24px;font-weight:400;color:var(--navy);letter-spacing:.3px}
 .filters{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
@@ -79,12 +79,6 @@ details.needs summary{cursor:pointer;color:var(--accent);font-weight:600}
 </head>
 <body>
 <div class="wrap">
-  <div class="topbar">
-    <a class="logo" href="../"><b>Gar's Scouting Report</b><span>@NBATOPSCOUT</span></a>
-    <nav class="sitenav" aria-label="Site">
-      <a href="../">2027 Big Board</a><a href="../mock/" aria-current="page">Mock Draft</a><a href="../bigboard/">Board Builder</a><a href="../lottery/">Lottery</a>
-    </nav>
-  </div>
   <div class="hero">
     <div class="kicker">2027 NBA Draft</div>
     <h1>Mock Draft Simulator</h1>
@@ -147,10 +141,11 @@ details.needs summary{cursor:pointer;color:var(--accent);font-weight:600}
     <div class="row" style="margin:10px 0"><button class="btn" id="gtxt">Copy grades for X</button></div>
     <div class="grades" id="grades"></div>
   </section>
-  <footer>Gar's Scouting Report · Draft order uses the 3-2-1 lottery rules and ESPN standings. Traded-pick rules as of <span id="ownasof"></span>. "Value" and "reach" compare the pick number to my board rank. Team needs come from ESPN player stats.</footer>
+  <div class="pagenote">Gar's Scouting Report · Draft order uses the 3-2-1 lottery rules and ESPN standings. Traded-pick rules as of <span id="ownasof"></span>. "Value" and "reach" compare the pick number to my board rank. Team needs come from ESPN player stats.</div>
 </div>
 
-<script src="../tools/tools.js?v=20261124b"></script>
+<script src="../tools/shell.js?v=20261125a" defer></script>
+<script src="../tools/tools.js?v=20261125a"></script>
 <script>
 (async function(){
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
