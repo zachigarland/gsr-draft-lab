@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>2027 NBA Draft Lottery Simulator (3-2-1 Lottery) | Gar's Scouting Report</title>
+<meta name="description" content="Simulate the 2027 NBA Draft Lottery under the new 3-2-1 format with live standings, full pick odds and traded-pick ownership. Then take the order into a mock draft.">
+<link rel="canonical" href="https://zachigarland.github.io/gsr-draft-lab/lottery/">
+<meta property="og:title" content="2027 NBA Draft Lottery Simulator | Gar's Scouting Report">
+<meta property="og:description" content="3-2-1 lottery odds, live standings and traded picks. Sim it, then mock it.">
+<meta property="og:image" content="https://zachigarland.github.io/gsr-draft-lab/og-nov23w.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tools/tools.css">
+<style>
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:18px;align-items:start;margin-top:14px}
+@media (max-width:980px){.layout{grid-template-columns:1fr}}
+.res{display:flex;flex-direction:column;gap:6px}
+.ri{display:grid;grid-template-columns:34px 48px 1fr auto;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 10px;transition:background .3s}
+.ri .pk{font-family:var(--display);font-size:24px;color:var(--navy);text-align:center}
+.ri.hidden{opacity:.35}
+.ri.flash{background:#FFF1E8}
+.mv{font-family:var(--mono);font-size:12px}
+.chk{display:flex;align-items:center;gap:6px;font-size:14px}
+.statuspill{font-family:var(--mono);font-size:10.5px;padding:2px 6px;border-radius:4px;white-space:nowrap}
+.s-releg{background:#FDE7E4;color:#9B2B21}.s-out{background:#FFF0E6;color:#A2420A}.s-pi910{background:#E7F0FA;color:#1F4F8A}.s-pi78{background:#EEF0F3;color:#4A5867}
+.rules li{margin:4px 0}
+.divider td{background:var(--panel-2);font-family:var(--mono);font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="logo" href="../"><b>Gar's Scouting Report</b><span>@NBATOPSCOUT</span></a>
+    <nav class="sitenav" aria-label="Site">
+      <a href="../">2027 Big Board</a><a href="../mock/">Mock Draft</a><a href="../bigboard/">Board Builder</a><a href="../lottery/" aria-current="page">Lottery</a>
+    </nav>
+  </div>
+  <div class="hero">
+    <div class="kicker">2027 NBA Draft · 3-2-1 Lottery</div>
+    <h1>Lottery Simulator</h1>
+    <p>The 2027 draft is the first one under the new 3-2-1 lottery. Sixteen teams get balls, all 16 picks are drawn, and the three worst records get fewer balls than the teams just above them. Sim it with the standings as they are right now, then take the order straight into a mock draft.</p>
+  </div>
+
+  <div class="panel row" style="justify-content:space-between">
+    <div class="row">
+      <button class="btn primary" id="run">Sim lottery</button>
+      <button class="btn" id="reveal">Reveal one by one</button>
+      <button class="btn dark" id="tomock" disabled>Mock this order</button>
+    </div>
+    <div class="row">
+      <div class="ctl"><label for="l-east">East 7 vs 8 loser</label><select id="l-east"><option value="8">8 seed</option><option value="7">7 seed</option></select></div>
+      <div class="ctl"><label for="l-west">West 7 vs 8 loser</label><select id="l-west"><option value="8">8 seed</option><option value="7">7 seed</option></select></div>
+    </div>
+  </div>
+  <div class="note" id="src">Loading standings…</div>
+
+  <div class="layout">
+    <div>
+      <h2 style="margin-top:6px">Odds if the season ended today</h2>
+      <div class="scrollx"><table class="tbl heat" id="odds"></table></div>
+      <div class="note">Odds come from 20,000 simulated drawings using the official ball counts. Columns 1 to 16 show the chance of landing each pick.</div>
+
+      <h2>Full first round</h2>
+      <div class="scrollx"><table class="tbl" id="round"></table></div>
+      <div class="note" id="ownnote"></div>
+    </div>
+    <div>
+      <h2 style="margin-top:6px">Lottery result</h2>
+      <div class="res" id="res"><div class="small">Hit "Sim lottery" to draw all 16 picks.</div></div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn" id="img" disabled>Download image</button>
+        <button class="btn" id="txt" disabled>Copy for X</button>
+      </div>
+      <h2>How the 3-2-1 lottery works</h2>
+      <ul class="rules small">
+        <li>16 teams: the 10 that miss the playoffs and play-in, the 9 and 10 seeds, and the two teams that lose the 7 vs 8 play-in game.</li>
+        <li>Missed the play-in: 3 balls each (8.1% at No. 1).</li>
+        <li>Three worst records: "draft relegated" to 2 balls (5.4%). They cannot fall below No. 12.</li>
+        <li>9 and 10 seeds: 2 balls. Losers of the 7 vs 8 game: 1 ball (2.7%).</li>
+        <li>All 16 picks are drawn. Everyone except the relegated teams can fall to No. 16.</li>
+        <li>No team's own pick can go No. 1 two years in a row or top five three years in a row. That rules Washington out of No. 1 and Utah's pick out of the top five.</li>
+        <li>Picks 17 to 30 go to the other 14 teams, worst record first.</li>
+      </ul>
+      <div class="small">Sources: <a href="https://pr.nba.com/nba-board-of-governors-approves-new-draft-lottery-system-to-address-tanking/" rel="noopener">NBA announcement</a>, <a href="https://www.nba.com/draft/lottery" rel="noopener">NBA.com lottery explainer</a>, <a href="https://www.hoopsrumors.com/2026/09/traded-first-round-picks-for-2027-nba-draft.html" rel="noopener">Hoops Rumors traded picks</a>.</div>
+    </div>
+  </div>
+  <footer>Gar's Scouting Report · Standings from ESPN. Traded-pick rules as of <span id="ownasof"></span>. Not affiliated with the NBA.</footer>
+</div>
+
+<script src="../tools/tools.js"></script>
+<script>
+(async function(){
+const $ = s => document.querySelector(s);
+let ST, CL, ODDS, last = null;
+const loser = () => ({East:+$("#l-east").value, West:+$("#l-west").value});
+
+function pctCell(v){
+  if(!v) return `<td class="h"></td>`;
+  const a = Math.min(1, v/0.16);
+  return `<td class="h" style="background:rgba(226,80,10,${(0.08+a*0.8).toFixed(2)});color:${a>.55?"#fff":"#0E1A26"}">${(v*100).toFixed(v<.1?1:0)}</td>`;
+}
+function renderOdds(){
+  CL = GSR.classify(ST.teams, loser());
+  ODDS = GSR.simOdds(CL.lottery, 20000);
+  const head = `<tr><th>Team</th><th>Rec</th><th>Status</th><th class="num">Balls</th><th class="num">Avg</th>${Array.from({length:16},(_,i)=>`<th class="num">${i+1}</th>`).join("")}</tr>`;
+  const rows = CL.lottery.map(x=>{
+    const d = ODDS[x.t]; let avg=0; d.forEach((v,k)=>avg+=v*k);
+    return `<tr><td>${GSR.nbaChip(x.t)}</td><td class="num">${x.w}-${x.l}</td><td><span class="statuspill s-${x.status}">${GSR.STATUS[x.status]}</span></td><td class="num">${x.balls}</td><td class="num">${avg.toFixed(1)}</td>${d.slice(1).map(pctCell).join("")}</tr>`;
+  }).join("");
+  $("#odds").innerHTML = head + rows;
+  renderRound(null);
+}
+function renderRound(lotOrder){
+  const base = lotOrder || CL.lottery;
+  const order = GSR.fullOrder(base, CL.playoff);
+  const own = GSR.resolveOwners(order);
+  const rec = Object.fromEntries(ST.teams.map(x=>[x.t,x]));
+  $("#round").innerHTML = `<tr><th class="num">Pick</th><th>Owner</th><th>Original team</th><th class="num">Rec</th><th>Pick note</th></tr>` +
+    own.map((p,i)=> (i===16?`<tr class="divider"><td colspan="5">Picks 17 to 30: non-lottery teams, worst record first</td></tr>`:"") +
+      `<tr><td class="num">${p.pick}</td><td>${GSR.ownerLabel(p)}</td><td>${GSR.teamName(p.orig)}</td><td class="num">${rec[p.orig].w}-${rec[p.orig].l}</td><td class="small">${GSR.OWN_NOTES[p.orig]||""}</td></tr>`).join("");
+  $("#ownnote").textContent = lotOrder ? "Owners above reflect your simulated lottery. Conditional picks (protections, swaps, most-favorable deals) are resolved for this exact order."
+    : "Before a sim, picks 1 to 16 are listed by record, worst first. Under the 3-2-1 rules that is not the expected order, since the three worst records get fewer balls.";
+}
+function resItem(x,k,hidden){
+  const own = last.own[k];
+  const recIdx = CL.lottery.findIndex(y=>y.t===x.t)+1;
+  const mv = recIdx-(k+1);
+  const mvTxt = mv>0?`<span class="mv up">up ${mv}</span>`:mv<0?`<span class="mv down">down ${-mv}</span>`:`<span class="mv small">same</span>`;
+  return `<div class="ri ${hidden?"hidden":""}" data-k="${k}"><div class="pk">${k+1}</div><div>${hidden?'<span class="nba" style="background:#C9D2DC">?</span>':GSR.nbaChip(own.owner)}</div><div>${hidden?'<span class="small">To be drawn</span>':`<b>${GSR.teamName(own.owner)}</b>${own.owner!==own.orig?` <span class="small">via ${own.orig}</span>`:""}<div class="small">${x.w}-${x.l} · ${x.balls} ball${x.balls>1?"s":""} · ${(ODDS[x.t][1]*100).toFixed(1)}% at No. 1</div>`}</div><div>${hidden?"":mvTxt}</div></div>`;
+}
+function sim(){
+  const lotOrder = GSR.drawLottery(CL.lottery);
+  const order = GSR.fullOrder(lotOrder, CL.playoff);
+  last = {lotOrder, order, own: GSR.resolveOwners(order)};
+  GSR.store.set("gsrLottery", {order, when: Date.now(), asof: ST.asof});
+  ["#tomock","#img","#txt"].forEach(s=>$(s).disabled=false);
+  renderRound(lotOrder);
+}
+function showAll(){ $("#res").innerHTML = last.lotOrder.map((x,k)=>resItem(x,k,false)).join(""); }
+
+$("#run").onclick = ()=>{ sim(); showAll(); };
+$("#reveal").onclick = async ()=>{
+  sim(); const btns=[$("#run"),$("#reveal")]; btns.forEach(b=>b.disabled=true);
+  $("#res").innerHTML = last.lotOrder.map((x,k)=>resItem(x,k,true)).join("");
+  for(let k=15;k>=0;k--){
+    await new Promise(r=>setTimeout(r, k<4?1100:550));
+    const el = $(`#res .ri[data-k="${k}"]`); el.outerHTML = resItem(last.lotOrder[k],k,false);
+    const n = $(`#res .ri[data-k="${k}"]`); n.classList.add("flash"); setTimeout(()=>n.classList.remove("flash"),700);
+  }
+  btns.forEach(b=>b.disabled=false);
+};
+$("#tomock").onclick = ()=>{ location.href = "../mock/?src=lottery"; };
+$("#l-east").onchange = $("#l-west").onchange = ()=>{ last=null; renderOdds(); $("#res").innerHTML='<div class="small">Play-in changed. Sim again.</div>'; ["#tomock","#img","#txt"].forEach(s=>$(s).disabled=true); };
+
+$("#txt").onclick = ()=>{
+  const t = "My 2027 NBA Draft Lottery sim (3-2-1 rules):\n" + last.own.slice(0,8).map(p=>`${p.pick}. ${GSR.teamName(p.owner)}${p.owner!==p.orig?` (via ${p.orig})`:""}`).join("\n") + "\n\nSim yours: https://zachigarland.github.io/gsr-draft-lab/lottery/";
+  GSR.copy(t, "Copied the top 8");
+};
+$("#img").onclick = async ()=>{
+  await document.fonts.ready;
+  const W=1200, rowH=58, H=126+30+16*rowH/2+40+54+20;
+  const c=document.createElement("canvas"); c.width=W; c.height=H; const g=c.getContext("2d");
+  g.fillStyle="#fff"; g.fillRect(0,0,W,H);
+  GSR.drawHeader(g,W,"2027 DRAFT LOTTERY SIM","3-2-1 rules · standings as of "+ST.asof);
+  last.own.slice(0,16).forEach((p,k)=>{
+    const col = k<8?0:1, r = k%8, x = 40+col*560, y = 160+r*rowH;
+    g.fillStyle = r%2? "#F6F8FB":"#fff"; g.fillRect(x,y,540,rowH-6);
+    g.fillStyle="#0B2239"; g.font="36px 'Bebas Neue', Impact"; g.fillText(String(p.pick), x+12, y+38);
+    g.fillStyle=(GSR.NBA[p.owner]||[])[2]||"#333"; GSR.roundRect(g,x+64,y+10,64,32,5); g.fill();
+    g.fillStyle="#fff"; g.font="24px 'Bebas Neue', Impact"; g.textAlign="center"; g.fillText(p.owner,x+96,y+35); g.textAlign="left";
+    g.fillStyle="#0E1A26"; g.font="600 22px Barlow, Arial"; g.fillText(GSR.teamName(p.owner), x+142, y+33);
+    if(p.owner!==p.orig){ g.fillStyle="#5A6878"; g.font="500 15px 'IBM Plex Mono'"; g.fillText("via "+p.orig, x+450, y+33); }
+  });
+  GSR.drawFooter(g,W,H);
+  GSR.download(c,"gsr-2027-lottery-sim.png");
+};
+
+$("#ownasof").textContent = GSR.OWN_ASOF;
+ST = await GSR.loadStandings();
+$("#src").innerHTML = ST.live ? `Standings pulled live from ESPN (${ST.asof}). Records are current, not projected to 82 games.`
+  : `<span class="flag">Live standings did not load, so this uses the ESPN snapshot from ${ST.asof}.</span>`;
+renderOdds();
+})();
+</script>
+</body>
+</html>

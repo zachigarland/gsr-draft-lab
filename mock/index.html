@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>2027 NBA Mock Draft Simulator | Gar's Scouting Report</title>
+<meta name="description" content="Build your own 2027 NBA mock draft. Use a 3-2-1 lottery sim or the current standings, pick for one team or all 30, let the CPU draft off Gar's board or consensus, then share it.">
+<link rel="canonical" href="https://zachigarland.github.io/gsr-draft-lab/mock/">
+<meta property="og:title" content="2027 NBA Mock Draft Simulator | Gar's Scouting Report">
+<meta property="og:description" content="Pick for your team, sim the rest, share the mock. 88 prospects with stats and tiers.">
+<meta property="og:image" content="https://zachigarland.github.io/gsr-draft-lab/og-nov23w.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tools/tools.css">
+<style>
+.setup{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;align-items:end}
+.layout{display:grid;grid-template-columns:400px minmax(0,1fr);gap:18px;align-items:start;margin-top:16px}
+@media (max-width:900px){.layout{grid-template-columns:1fr}.layout .board-col{order:2}}
+.picks{display:flex;flex-direction:column;gap:5px}
+.pi{display:grid;grid-template-columns:30px 46px 1fr auto;gap:8px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 8px;min-height:50px}
+.pi .n{font-family:var(--display);font-size:22px;color:var(--navy);text-align:center}
+.pi.clock{border:2px solid var(--accent);background:#FFF7F2}
+.pi.mine .n{color:var(--accent)}
+.pi .empty{color:var(--muted);font-size:13px}
+.redo{border:0;background:transparent;cursor:pointer;color:var(--muted);font-size:16px;padding:4px 6px;border-radius:5px}
+.redo:hover{background:var(--panel-2);color:var(--navy)}
+.vt{font-family:var(--mono);font-size:10.5px;padding:1px 5px;border-radius:4px;margin-left:4px}
+.vt.val{background:#E5F4EC;color:#1E6E41}.vt.reach{background:#FDE7E4;color:#9B2B21}
+.clockbar{position:sticky;top:0;z-index:5;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;box-shadow:0 2px 8px rgba(11,34,57,.06)}
+.clockbar .who{display:flex;align-items:center;gap:8px;font-size:15px}
+.clockbar .who b{font-family:var(--display);font-size:24px;font-weight:400;color:var(--navy);letter-spacing:.3px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.filters input{flex:1 1 200px}
+.avail{display:flex;flex-direction:column;gap:5px}
+.pr{display:grid;grid-template-columns:34px 22px 44px minmax(0,1fr) auto;gap:8px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 9px}
+.pr .rk{font-family:var(--display);font-size:20px;color:var(--navy);text-align:center}
+.pr .cons{font-family:var(--mono);font-size:11px;color:var(--muted);white-space:nowrap}
+.pr .draft{padding:6px 12px;min-height:36px}
+.done{background:var(--navy);color:#fff;border-radius:10px;padding:16px;margin-top:16px}
+.done h3{color:#fff}
+.done .btn{background:#fff;color:var(--navy);border-color:#fff}
+.done .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+details.add{margin-top:10px}
+details.add summary{cursor:pointer;color:var(--accent);font-weight:600}
+.addf{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.viewbanner{margin:12px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="logo" href="../"><b>Gar's Scouting Report</b><span>@NBATOPSCOUT</span></a>
+    <nav class="sitenav" aria-label="Site">
+      <a href="../">2027 Big Board</a><a href="../mock/" aria-current="page">Mock Draft</a><a href="../bigboard/">Board Builder</a><a href="../lottery/">Lottery</a>
+    </nav>
+  </div>
+  <div class="hero">
+    <div class="kicker">2027 NBA Draft</div>
+    <h1>Mock Draft Simulator</h1>
+    <p>Pick for one team and let the CPU handle the rest, or make every pick yourself. The player pool is my 88-player board with stats through <span id="bdate">the latest update</span>. Traded picks resolve to the right owner for whatever order you use.</p>
+  </div>
+
+  <div class="viewbanner" id="viewbanner" hidden></div>
+
+  <section class="panel" id="setup">
+    <div class="setup">
+      <div class="ctl"><span class="lab">Draft order</span>
+        <div class="seg" id="o-src"><button data-v="last">My last lottery sim</button><button data-v="fresh" aria-pressed="true">New lottery sim</button><button data-v="record">By record</button></div></div>
+      <div class="ctl"><span class="lab">Picks</span>
+        <div class="seg" id="o-len"><button data-v="16">Lottery (16)</button><button data-v="30" aria-pressed="true">First round (30)</button></div></div>
+      <div class="ctl"><label for="o-team">You pick for</label><select id="o-team"><option value="ALL">Every team</option></select></div>
+      <div class="ctl"><span class="lab">CPU drafts off</span>
+        <div class="seg" id="o-cpu"><button data-v="board" aria-pressed="true">My board</button><button data-v="cons">Consensus</button><button data-v="chaos">Chaos</button></div></div>
+    </div>
+    <div class="row" style="margin-top:14px;justify-content:space-between">
+      <div class="small" id="ordernote">Loading standings and the board…</div>
+      <div class="row"><button class="btn" id="resume" hidden>Resume saved mock</button><button class="btn primary" id="start" disabled>Start draft</button></div>
+    </div>
+  </section>
+
+  <div class="layout" id="draft" hidden>
+    <div class="board-col">
+      <h2 style="margin-top:4px">Draft order</h2>
+      <div class="picks" id="picks"></div>
+    </div>
+    <div>
+      <div class="clockbar" id="clock"></div>
+      <div class="filters">
+        <input type="search" id="q" placeholder="Search players or schools" aria-label="Search players">
+        <div class="seg" id="f-pos"><button data-v="" aria-pressed="true">All</button><button data-v="G">Guards</button><button data-v="W">Wings</button><button data-v="B">Bigs</button></div>
+        <div class="seg" id="f-sort"><button data-v="rank" aria-pressed="true">Gar rank</button><button data-v="cons">Consensus</button></div>
+      </div>
+      <div class="avail" id="avail"></div>
+      <details class="add"><summary>Add a player who is not on the board</summary>
+        <div class="addf"><input type="text" id="c-name" placeholder="Name"><input type="text" id="c-team" placeholder="School or club"><input type="text" id="c-pos" placeholder="Pos" style="width:80px"><button class="btn" id="c-add">Add to pool</button></div>
+      </details>
+    </div>
+  </div>
+
+  <section class="done" id="done" hidden>
+    <h3>Mock complete</h3>
+    <div class="small" style="color:#C9D6E3" id="donesum"></div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn primary" id="share">Copy share link</button>
+      <button class="btn" id="img">Download image</button>
+      <button class="btn" id="txt">Copy for X</button>
+      <button class="btn" id="again">Start a new mock</button>
+    </div>
+  </section>
+  <footer>Gar's Scouting Report · Draft order uses the 3-2-1 lottery rules and ESPN standings. Traded-pick rules as of <span id="ownasof"></span>. "Value" and "reach" compare the pick number to my board rank.</footer>
+</div>
+
+<script src="../tools/tools.js"></script>
+<script>
+(async function(){
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+let BOARD=[], BY={}, ST, CL;
+let M = null; // {order:[{pick,orig,owner}], picks:[id], team, cpu, customs:[], view}
+const filt = {q:"", pos:"", sort:"rank"};
+const segVal = id => ($(`#${id} [aria-pressed="true"]`)||{}).dataset?.v;
+function seg(id, fn){ $$(`#${id} button`).forEach(b=>b.onclick=()=>{ if(b.disabled) return; $$(`#${id} button`).forEach(x=>x.setAttribute("aria-pressed", x===b)); fn&&fn(b.dataset.v); }); }
+
+function enc(o){ return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); }
+function dec(s){ s=s.replace(/-/g,"+").replace(/_/g,"/"); return JSON.parse(decodeURIComponent(escape(atob(s)))); }
+
+function buildOrder(src){
+  let order;
+  if(src==="last"){ const L = GSR.store.get("gsrLottery",null); order = L&&L.order; }
+  if(!order && src!=="record") order = GSR.fullOrder(GSR.drawLottery(CL.lottery), CL.playoff);
+  if(!order) order = GSR.fullOrder(CL.lottery, CL.playoff);
+  return GSR.resolveOwners(order);
+}
+function refreshTeams(){
+  const src = segVal("o-src"), len = +segVal("o-len");
+  const preview = src==="fresh" ? null : buildOrder(src);
+  const sel = $("#o-team"), cur = sel.value;
+  const owners = preview ? [...new Set(preview.slice(0,len).map(p=>p.owner))] : Object.keys(GSR.NBA);
+  sel.innerHTML = `<option value="ALL">Every team</option>` + owners.sort().map(t=>`<option value="${t}">${GSR.teamName(t)}</option>`).join("");
+  if([...sel.options].some(o=>o.value===cur)) sel.value = cur;
+  const L = GSR.store.get("gsrLottery",null);
+  $("#ordernote").innerHTML = src==="last" ? (L ? `Using the lottery you simmed on the <a href="../lottery/">lottery page</a>.` : `No saved lottery sim yet, so this will run a new one. <a href="../lottery/">Sim one here</a>.`)
+    : src==="fresh" ? `A new 3-2-1 lottery runs when you start, using standings ${ST.live?"pulled live from ESPN":"from the "+ST.asof+" snapshot"}.`
+    : `Picks 1 to 16 by record, worst first, with no lottery. Under the 3-2-1 rules this is not the expected order.`;
+}
+
+const isMine = k => M.team==="ALL" || M.order[k].owner===M.team;
+const cur = () => M.picks.length;
+const total = () => M.order.length;
+const taken = () => new Set(M.picks);
+const P = id => BY[id] || (M.customs||[]).find(c=>c.id===id);
+
+function cpuPick(){
+  const t = taken(); const sd = M.cpu==="chaos"?6:M.cpu==="cons"?2:1.2;
+  let best=null, bs=1e9;
+  for(const p of BOARD){ if(t.has(p.id)) continue;
+    const g = Math.sqrt(-2*Math.log(Math.random()||1e-9))*Math.cos(2*Math.PI*Math.random());
+    const s = (M.cpu==="board"?p.rank:p.cons) + g*sd; if(s<bs){bs=s;best=p;} }
+  return best && best.id;
+}
+function save(){ if(!M.view) GSR.store.set("gsrMock", M); }
+
+function valueTag(k,p){
+  if(!p || p.custom) return "";
+  const d = (k+1) - p.rank;
+  if(d>=5) return `<span class="vt val">value +${d}</span>`;
+  if(d<=-8) return `<span class="vt reach">reach ${-d}</span>`;
+  return "";
+}
+function renderPicks(){
+  $("#picks").innerHTML = M.order.map((o,k)=>{
+    const p = M.picks[k] ? P(M.picks[k]) : null, clock = k===cur() && !M.view;
+    return `<div class="pi ${clock?"clock":""} ${isMine(k)&&M.team!=="ALL"?"mine":""}"><div class="n">${o.pick}</div><div>${GSR.nbaChip(o.owner)}</div>
+      <div>${p ? `<div class="pname">${GSR.esc(p.name)}${valueTag(k,p)}</div><div class="pmeta">${GSR.schoolTag(p.team)} ${GSR.esc(p.pos||"")}${o.owner!==o.orig?` · via ${o.orig}`:""}</div>`
+        : `<div class="empty">${clock?"On the clock":GSR.teamName(o.owner)}${o.owner!==o.orig?` · via ${o.orig}`:""}</div>`}</div>
+      <div>${p && !M.view ? `<button class="redo" data-k="${k}" title="Redo from pick ${o.pick}" aria-label="Redo from pick ${o.pick}">↺</button>`:""}</div></div>`;
+  }).join("");
+  $$("#picks .redo").forEach(b=>b.onclick=()=>{ M.picks = M.picks.slice(0,+b.dataset.k); save(); render(); });
+}
+function renderClock(){
+  if(M.view){ $("#clock").innerHTML = `<div class="who"><b>Shared mock</b></div><button class="btn primary" id="mine">Make your own</button>`; $("#mine").onclick=()=>{location.href="./";}; return; }
+  if(cur()>=total()){ $("#clock").innerHTML = `<div class="who"><b>Draft complete</b></div><button class="btn" id="undo">Undo last pick</button>`; $("#undo").onclick=undo; return; }
+  const o = M.order[cur()], mine = isMine(cur());
+  $("#clock").innerHTML = `<div class="who">${GSR.nbaChip(o.owner)}<div><b>Pick ${o.pick}: ${GSR.teamName(o.owner)}</b>${o.owner!==o.orig?` <span class="small">via ${o.orig}</span>`:""}<div class="small">${mine?"Your pick. Hit Draft on a player.":"CPU team"}</div></div></div>
+    <div class="row">${cur()?`<button class="btn" id="undo">Undo</button>`:""}${mine?`<button class="btn" id="auto">Auto pick</button>${M.team==="ALL"?`<button class="btn primary" id="tomine">Sim rest</button>`:""}`:`<button class="btn" id="next">Sim pick</button><button class="btn primary" id="tomine">${M.team==="ALL"?"Sim rest":"Sim to my pick"}</button>`}</div>`;
+  $("#undo") && ($("#undo").onclick=undo);
+  $("#auto") && ($("#auto").onclick=()=>draft(cpuPick()));
+  $("#next") && ($("#next").onclick=()=>{ draft(cpuPick(), true); });
+  $("#tomine") && ($("#tomine").onclick=()=>runCpu(true));
+}
+function undo(){
+  if(!M.picks.length) return;
+  M.picks.pop();
+  if(M.team!=="ALL") while(M.picks.length && !isMine(M.picks.length)) M.picks.pop(); // back to your last turn
+  save(); render();
+}
+function renderAvail(){
+  const t = taken(), q = filt.q.toLowerCase();
+  let list = [...BOARD, ...(M.customs||[])].filter(p=>!t.has(p.id))
+    .filter(p=>!filt.pos || p.grp===filt.pos)
+    .filter(p=>!q || p.name.toLowerCase().includes(q) || (p.team||"").toLowerCase().includes(q));
+  list.sort((a,b)=> filt.sort==="cons" ? (a.cons-b.cons) : (a.rank-b.rank));
+  const can = !M.view && cur()<total() && isMine(cur());
+  $("#avail").innerHTML = list.slice(0,120).map(p=>`<div class="pr"><div class="rk">${p.custom?"+":p.rank}</div><span class="tier ${p.tier||"X"}">${p.tier||"?"}</span>${GSR.schoolTag(p.team)}
+    <div><div class="pname">${GSR.esc(p.name)}</div><div class="pmeta">${GSR.esc(p.pos||"")}${p.ht?" · "+GSR.esc(p.ht):""}${p.age!=null?" · age "+GSR.ageTxt(p):""}${p.team?" · "+GSR.esc(p.team):""}</div>${GSR.statLine(p)?`<div class="sline">${GSR.statLine(p)}</div>`:""}</div>
+    <div style="text-align:right">${p.custom?"":`<div class="cons">cons ${Math.round(p.cons)}</div>`}<button class="btn primary draft" data-id="${p.id}" ${can?"":"disabled"}>Draft</button></div></div>`).join("") || `<div class="small">No players match.</div>`;
+  $$("#avail .draft").forEach(b=>b.onclick=()=>draft(b.dataset.id));
+}
+function renderDone(){
+  const fin = cur()>=total();
+  $("#done").hidden = !fin;
+  if(!fin) return;
+  const vals = M.picks.map((id,k)=>{ const p=P(id); return p&&!p.custom ? (k+1)-p.rank : 0; });
+  const best = vals.reduce((b,v,k)=>v>vals[b]?k:b,0), worst = vals.reduce((b,v,k)=>v<vals[b]?k:b,0);
+  const nm = k => `${P(M.picks[k]).name} at ${k+1}`;
+  const bits = [`${total()} picks made.`];
+  bits.push(vals[best]>=5 ? `Best value: ${nm(best)} (my No. ${P(M.picks[best]).rank}).` : `No big values.`);
+  bits.push(vals[worst]<=-5 ? `Biggest reach: ${nm(worst)} (my No. ${P(M.picks[worst]).rank}).` : `No big reaches.`);
+  $("#donesum").textContent = bits.join(" ");
+}
+function render(){ renderPicks(); renderClock(); renderAvail(); renderDone(); }
+
+function draft(id, single){
+  if(!id || cur()>=total()) return;
+  M.picks.push(id); save(); render();
+  if(!single && M.team!=="ALL") runCpu(false);
+}
+let running = false;
+async function runCpu(toMine){
+  if(running) return; running = true;
+  while(cur()<total() && (M.team==="ALL" ? toMine : !isMine(cur()))){
+    M.picks.push(cpuPick()); save(); render();
+    await new Promise(r=>setTimeout(r, 140));
+  }
+  running = false;
+}
+
+function start(fromSaved){
+  if(fromSaved){ M = fromSaved; }
+  else {
+    const len = +segVal("o-len");
+    const full = buildOrder(segVal("o-src"));
+    M = {full: full.map(x=>x.orig), order: full.slice(0,len), picks:[], team:$("#o-team").value, cpu:segVal("o-cpu"), customs:[], src:segVal("o-src")};
+  }
+  $("#setup").hidden = !!M.view; $("#draft").hidden = false; $("#resume").hidden = true;
+  save(); render();
+  $("#draft").scrollIntoView({behavior:"smooth", block:"start"});
+  if(!M.view && M.team!=="ALL" && !isMine(cur())) runCpu(false);
+}
+
+/* exports */
+function shareURL(){
+  const data = {o:M.full||M.order.map(x=>x.orig), n:total(), p:M.picks, c:(M.customs||[]).filter(c=>M.picks.includes(c.id)).map(c=>[c.id,c.name,c.team,c.pos])};
+  return location.origin + location.pathname + "#m=" + enc(data);
+}
+$("#share").onclick = ()=>GSR.copy(shareURL(), "Share link copied");
+$("#txt").onclick = ()=>{
+  const n = Math.min(10,total());
+  const t = `My 2027 NBA mock draft:\n` + M.order.slice(0,n).map((o,k)=>`${o.pick}. ${o.owner}: ${P(M.picks[k]).name}`).join("\n") + `\n\nFull mock: ${shareURL()}`;
+  GSR.copy(t, `Copied the top ${n}`);
+};
+$("#again").onclick = ()=>{ GSR.store.set("gsrMock", null); location.href = location.pathname; };
+$("#img").onclick = async ()=>{
+  await document.fonts.ready;
+  const n = total(), per = Math.ceil(n/2), rowH = 64, W = 1200, H = 126+30+per*rowH+20+54;
+  const c=document.createElement("canvas"); c.width=W; c.height=H; const g=c.getContext("2d");
+  g.fillStyle="#fff"; g.fillRect(0,0,W,H);
+  GSR.drawHeader(g,W,"MY 2027 MOCK DRAFT", (n===16?"Lottery":"First round")+" · board as of "+(GSR.boardDate||""));
+  M.order.forEach((o,k)=>{
+    const p=P(M.picks[k]); const col=k<per?0:1, r=k%per, x=40+col*565, y=156+r*rowH;
+    g.fillStyle=r%2?"#F6F8FB":"#fff"; g.fillRect(x,y,545,rowH-6);
+    g.fillStyle="#0B2239"; g.font="34px 'Bebas Neue', Impact"; g.textAlign="center"; g.fillText(String(o.pick),x+24,y+40);
+    g.fillStyle=(GSR.NBA[o.owner]||[])[2]||"#333"; GSR.roundRect(g,x+50,y+13,60,32,5); g.fill();
+    g.fillStyle="#fff"; g.font="24px 'Bebas Neue', Impact"; g.fillText(o.owner,x+80,y+38); g.textAlign="left";
+    g.fillStyle="#0E1A26"; g.font="700 22px Barlow, Arial"; g.fillText(p.name,x+124,y+28);
+    g.fillStyle="#5A6878"; g.font="500 15px 'IBM Plex Mono'"; g.fillText(`${p.pos||""} · ${p.team||""}${o.owner!==o.orig?" · via "+o.orig:""}`.slice(0,52),x+124,y+50);
+  });
+  GSR.drawFooter(g,W,H);
+  GSR.download(c,"gsr-2027-mock-draft.png");
+};
+$("#c-add").onclick = ()=>{
+  const name = $("#c-name").value.trim(); if(!name) return;
+  const c = {id:"c-"+GSR.slug(name), name, team:$("#c-team").value.trim(), pos:$("#c-pos").value.trim().toUpperCase(), custom:true, rank:99, cons:99, grp:""};
+  M.customs = (M.customs||[]).filter(x=>x.id!==c.id).concat(c);
+  ["#c-name","#c-team","#c-pos"].forEach(s=>$(s).value=""); save(); renderAvail(); GSR.toast("Added "+name);
+};
+
+$("#q").oninput = e=>{ filt.q=e.target.value; renderAvail(); };
+seg("f-pos", v=>{ filt.pos=v; renderAvail(); });
+seg("f-sort", v=>{ filt.sort=v; renderAvail(); });
+seg("o-src", refreshTeams); seg("o-len", refreshTeams); seg("o-cpu");
+$("#start").onclick = ()=>start();
+$("#ownasof").textContent = GSR.OWN_ASOF;
+
+/* boot */
+[BOARD, ST] = await Promise.all([GSR.loadBoard(), GSR.loadStandings()]);
+BOARD.forEach(p=>BY[p.id]=p);
+$("#bdate").textContent = GSR.boardDate || "the latest update";
+CL = GSR.classify(ST.teams);
+const L = GSR.store.get("gsrLottery",null);
+if(!L) $('#o-src [data-v="last"]').disabled = true;
+if(new URLSearchParams(location.search).get("src")==="lottery" && L){ $$("#o-src button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.v==="last")); }
+refreshTeams();
+$("#start").disabled = false;
+
+const h = location.hash.match(/#m=([\w-]+)/);
+if(h){
+  try{
+    const d = dec(h[1]);
+    const customs = (d.c||[]).map(([id,name,team,pos])=>({id,name,team,pos,custom:true,rank:99,cons:99}));
+    start({full:d.o, order: GSR.resolveOwners(d.o).slice(0, d.n||d.o.length), picks: d.p.filter(id=>BY[id]||customs.find(c=>c.id===id)), team:"ALL", cpu:"board", customs, view:true});
+    $("#viewbanner").hidden = false;
+    $("#viewbanner").innerHTML = `<div class="flag">You are viewing a shared mock. <a href="./">Build your own</a>.</div>`;
+  }catch(e){ GSR.toast("That share link could not be read"); }
+} else {
+  const saved = GSR.store.get("gsrMock", null);
+  if(saved && saved.order && saved.picks && saved.picks.length < saved.order.length){ $("#resume").hidden=false; $("#resume").onclick=()=>start(saved); }
+}
+})();
+</script>
+</body>
+</html>

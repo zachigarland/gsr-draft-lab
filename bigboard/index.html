@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>2027 NBA Big Board Builder | Gar's Scouting Report</title>
+<meta name="description" content="Build your own 2027 NBA Draft big board. Start from Gar's board or consensus, drag to reorder, add tiers and your own sleepers, then share it or download an image.">
+<link rel="canonical" href="https://zachigarland.github.io/gsr-draft-lab/bigboard/">
+<meta property="og:title" content="2027 NBA Big Board Builder | Gar's Scouting Report">
+<meta property="og:description" content="Drag, tier and share your own 2027 big board. 88 prospects with stats.">
+<meta property="og:image" content="https://zachigarland.github.io/gsr-draft-lab/og-nov23w.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tools/tools.css">
+<style>
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:18px;align-items:start;margin-top:16px}
+@media (max-width:900px){.layout{grid-template-columns:1fr}}
+.list{display:flex;flex-direction:column;gap:5px}
+.it{display:grid;grid-template-columns:38px 26px 44px minmax(0,1fr) auto;gap:8px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 8px;touch-action:auto}
+.it .rk{font-family:var(--display);font-size:22px;color:var(--navy);text-align:center;cursor:pointer;border-radius:5px}
+.it .rk:hover{background:var(--panel-2)}
+.it .rk input{width:38px;font-family:var(--display);font-size:20px;text-align:center;padding:2px;min-height:30px}
+.handle{cursor:grab;color:#9AA7B5;font-size:18px;text-align:center;touch-action:none;user-select:none;padding:6px 0}
+.handle:active{cursor:grabbing}
+.it.drag{opacity:.85;box-shadow:0 6px 18px rgba(11,34,57,.18);border-color:var(--accent);position:relative;z-index:3}
+.it.tierrow{grid-template-columns:38px 26px minmax(0,1fr) auto;background:var(--navy);border-color:var(--navy)}
+.it.tierrow input{background:transparent;border:1px dashed rgba(255,255,255,.35);color:#fff;font-family:var(--display);font-size:20px;letter-spacing:.4px;min-height:34px;width:100%}
+.it.tierrow .handle{color:#9FB3C8}
+.it.tierrow .x{color:#C9D6E3}
+.acts{display:flex;gap:2px;align-items:center}
+.ib{border:0;background:transparent;cursor:pointer;color:var(--muted);font-size:15px;padding:6px 7px;border-radius:5px;min-width:30px;min-height:32px}
+.ib:hover{background:var(--panel-2);color:var(--navy)}
+.diff{font-family:var(--mono);font-size:11px;white-space:nowrap;margin-right:4px}
+.pool .pr{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:8px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+.pool{display:flex;flex-direction:column;gap:5px;max-height:70vh;overflow:auto;padding-right:2px}
+.titlein{font-family:var(--display);font-size:26px;letter-spacing:.3px;color:var(--navy);width:100%;max-width:520px}
+.count{font-family:var(--mono);font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="logo" href="../"><b>Gar's Scouting Report</b><span>@NBATOPSCOUT</span></a>
+    <nav class="sitenav" aria-label="Site">
+      <a href="../">2027 Big Board</a><a href="../mock/">Mock Draft</a><a href="../bigboard/" aria-current="page">Board Builder</a><a href="../lottery/">Lottery</a>
+    </nav>
+  </div>
+  <div class="hero">
+    <div class="kicker">2027 NBA Draft</div>
+    <h1>Big Board Builder</h1>
+    <p>Start from my board, the outlet consensus or a blank slate. Drag players by the handle, tap a rank number to type a new spot, and drop in tier breaks. Your board saves in this browser automatically.</p>
+  </div>
+  <div class="viewbanner" id="viewbanner" hidden></div>
+
+  <section class="panel">
+    <div class="row" style="justify-content:space-between">
+      <input type="text" class="titlein" id="title" aria-label="Board title" value="My 2027 Big Board">
+      <div class="row">
+        <div class="ctl"><span class="lab">Start from</span>
+          <div class="seg" id="from"><button data-v="gar">Gar's board</button><button data-v="cons">Consensus</button><button data-v="blank">Blank</button></div></div>
+      </div>
+    </div>
+    <div class="row" style="margin-top:12px;justify-content:space-between">
+      <div class="row"><button class="btn" id="addtier">+ Tier break</button><span class="count" id="count"></span></div>
+      <div class="row">
+        <div class="ctl"><label for="imgn">Image size</label><select id="imgn"><option value="30">Top 30</option><option value="60">Top 60</option><option value="999">Full board</option></select></div>
+        <button class="btn" id="img">Download image</button>
+        <button class="btn" id="txt">Copy for X</button>
+        <button class="btn primary" id="share">Copy share link</button>
+      </div>
+    </div>
+    <div class="note" id="fromnote"></div>
+  </section>
+
+  <div class="layout">
+    <div>
+      <h2 style="margin-top:4px">Your board</h2>
+      <div class="list" id="list"></div>
+    </div>
+    <div>
+      <h2 style="margin-top:4px">Player pool</h2>
+      <input type="search" id="q" placeholder="Search players or schools" aria-label="Search the player pool" style="width:100%;margin-bottom:8px">
+      <div class="pool" id="pool"></div>
+      <details class="add" style="margin-top:12px"><summary style="cursor:pointer;color:var(--accent);font-weight:600">Add a player who is not on my board</summary>
+        <div class="row" style="margin-top:8px"><input type="text" id="c-name" placeholder="Name"><input type="text" id="c-team" placeholder="School or club"><input type="text" id="c-pos" placeholder="Pos" style="width:80px"><button class="btn" id="c-add">Add to board</button></div>
+      </details>
+    </div>
+  </div>
+  <footer>Gar's Scouting Report · "Gar" shows where the player sits on my board, and the arrow shows how far you moved him. Consensus averages ESPN, B/R, CBS and NBADraftRoom.</footer>
+</div>
+
+<script src="../tools/tools.js"></script>
+<script>
+(async function(){
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+let BOARD=[], BY={};
+let S = {title:"My 2027 Big Board", items:[], customs:[]}; // items: {k:"p",id} | {k:"t",label}
+let VIEW = false;
+const TIERNAME = {A:"Tier A",B:"Tier B",C:"Tier C",D:"Tier D",W:"Watchlist"};
+const P = id => BY[id] || S.customs.find(c=>c.id===id);
+const onBoard = () => new Set(S.items.filter(i=>i.k==="p").map(i=>i.id));
+const save = () => { if(!VIEW) GSR.store.set("gsrBoard", S); };
+
+function seed(kind){
+  if(kind==="blank"){ S.items=[]; return; }
+  if(kind==="cons"){ S.items = [...BOARD].sort((a,b)=>a.cons-b.cons).map(p=>({k:"p",id:p.id})); return; }
+  const items=[]; let t=null;
+  for(const p of BOARD){ if(p.tier!==t){ t=p.tier; items.push({k:"t",label:TIERNAME[t]||("Tier "+t)}); } items.push({k:"p",id:p.id}); }
+  S.items = items;
+}
+function rowHTML(it, idx, rank){
+  if(it.k==="t") return `<div class="it tierrow" data-i="${idx}"><div></div><div class="handle" aria-label="Drag tier break">⠿</div><input type="text" value="${GSR.esc(it.label)}" data-i="${idx}" aria-label="Tier name" ${VIEW?"disabled":""}><div class="acts">${VIEW?"":`<button class="ib x" data-a="del" data-i="${idx}" aria-label="Remove tier break">✕</button>`}</div></div>`;
+  const p = P(it.id); if(!p) return "";
+  let diff = "";
+  if(!p.custom){ const d = p.rank - rank; diff = `<span class="diff ${d>0?"up":d<0?"down":"small"}">Gar ${p.rank}${d? (d>0?" ▲"+d:" ▼"+(-d)) :""}</span>`; }
+  return `<div class="it" data-i="${idx}"><div class="rk" data-i="${idx}" title="Tap to type a new rank">${rank}</div><div class="handle" aria-label="Drag ${GSR.esc(p.name)}">⠿</div>${GSR.schoolTag(p.team)}
+    <div><div class="pname">${GSR.esc(p.name)}</div><div class="pmeta">${GSR.esc(p.pos||"")}${p.ht?" · "+GSR.esc(p.ht):""}${p.age!=null?" · age "+GSR.ageTxt(p):""}${p.team?" · "+GSR.esc(p.team):""}</div>${GSR.statLine(p)?`<div class="sline">${GSR.statLine(p)}</div>`:""}</div>
+    <div class="acts">${diff}${VIEW?"":`<button class="ib" data-a="up" data-i="${idx}" aria-label="Move up">▲</button><button class="ib" data-a="dn" data-i="${idx}" aria-label="Move down">▼</button><button class="ib" data-a="del" data-i="${idx}" aria-label="Remove from board">✕</button>`}</div></div>`;
+}
+function renderList(){
+  let r=0;
+  $("#list").innerHTML = S.items.map((it,i)=>rowHTML(it,i, it.k==="p" ? ++r : 0)).join("") || `<div class="small">Your board is empty. Add players from the pool.</div>`;
+  $("#count").textContent = `${r} players ranked`;
+  $$("#list .ib").forEach(b=>b.onclick=()=>act(b.dataset.a,+b.dataset.i));
+  $$("#list .tierrow input").forEach(inp=>inp.onchange=()=>{ S.items[+inp.dataset.i].label = inp.value.trim()||"Tier"; save(); });
+  $$("#list .rk").forEach(el=>el.onclick=()=>editRank(el));
+  if(!VIEW) $$("#list .handle").forEach(h=>h.onpointerdown=startDrag);
+}
+function renderPool(){
+  const on = onBoard(), q = $("#q").value.toLowerCase();
+  const list = [...BOARD, ...S.customs].filter(p=>!on.has(p.id)).filter(p=>!q||p.name.toLowerCase().includes(q)||(p.team||"").toLowerCase().includes(q));
+  $("#pool").innerHTML = list.map(p=>`<div class="pr">${GSR.schoolTag(p.team)}<div><div class="pname">${GSR.esc(p.name)}</div><div class="pmeta">${p.custom?"Your add":"Gar "+p.rank} · ${GSR.esc(p.pos||"")}${p.team?" · "+GSR.esc(p.team):""}</div></div><button class="btn" data-id="${p.id}" ${VIEW?"disabled":""}>Add</button></div>`).join("")
+    || `<div class="small">${q?"No matches.":"Every player is on your board."}</div>`;
+  $$("#pool button").forEach(b=>b.onclick=()=>{ S.items.push({k:"p",id:b.dataset.id}); save(); render(); GSR.toast("Added to the bottom of your board"); });
+}
+function render(){ $("#title").value = S.title; renderList(); renderPool(); }
+
+function act(a,i){
+  const it = S.items;
+  if(a==="del"){ it.splice(i,1); }
+  if(a==="up" && i>0){ [it[i-1],it[i]]=[it[i],it[i-1]]; }
+  if(a==="dn" && i<it.length-1){ [it[i+1],it[i]]=[it[i],it[i+1]]; }
+  save(); render();
+}
+function editRank(el){
+  if(VIEW || el.querySelector("input")) return;
+  const i = +el.dataset.i, oldRank = +el.textContent;
+  el.innerHTML = `<input type="number" min="1" value="${oldRank}" aria-label="New rank">`;
+  const inp = el.querySelector("input"); inp.focus(); inp.select();
+  const done = ()=>{
+    const want = Math.max(1, parseInt(inp.value,10)||oldRank);
+    const item = S.items.splice(i,1)[0];
+    let r=0, at=S.items.length;
+    for(let j=0;j<S.items.length;j++){ if(S.items[j].k==="p"){ r++; if(r===want){ at=j; break; } } }
+    S.items.splice(at,0,item); save(); render();
+  };
+  inp.onblur = done; inp.onkeydown = e=>{ if(e.key==="Enter") inp.blur(); if(e.key==="Escape"){ inp.onblur=null; render(); } };
+}
+
+/* pointer drag: works with mouse and touch */
+function startDrag(e){
+  const row = e.target.closest(".it"); if(!row) return;
+  e.preventDefault(); row.classList.add("drag");
+  const list = $("#list"); const h = row.getBoundingClientRect().height;
+  const move = ev=>{
+    const y = ev.clientY;
+    const sibs = [...list.querySelectorAll(".it:not(.drag)")];
+    let before = null;
+    for(const s of sibs){ const b = s.getBoundingClientRect(); if(y < b.top + b.height/2){ before = s; break; } }
+    if(before) list.insertBefore(row, before); else list.appendChild(row);
+    if(y < 70) window.scrollBy(0,-14); else if(y > innerHeight-70) window.scrollBy(0,14);
+  };
+  const up = ()=>{
+    document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); document.removeEventListener("pointercancel", up);
+    const order = [...list.querySelectorAll(".it")].map(n=>S.items[+n.dataset.i]);
+    S.items = order; save(); render();
+  };
+  document.addEventListener("pointermove", move); document.addEventListener("pointerup", up); document.addEventListener("pointercancel", up);
+}
+
+/* controls */
+let pendingFrom = null;
+$$("#from button").forEach(b=>b.onclick=()=>{
+  if(S.items.length && pendingFrom!==b.dataset.v){ pendingFrom=b.dataset.v; $("#fromnote").innerHTML = `<span class="flag">This replaces your current board. Click "${b.textContent}" again to confirm.</span>`; return; }
+  pendingFrom=null; $("#fromnote").textContent=""; seed(b.dataset.v); save(); render();
+});
+$("#addtier").onclick = ()=>{ S.items.push({k:"t",label:"New tier"}); save(); render(); GSR.toast("Tier break added at the bottom. Drag it into place."); };
+$("#title").onchange = ()=>{ S.title = $("#title").value.trim() || "My 2027 Big Board"; save(); };
+$("#q").oninput = renderPool;
+$("#c-add").onclick = ()=>{
+  const name=$("#c-name").value.trim(); if(!name) return;
+  const c={id:"c-"+GSR.slug(name), name, team:$("#c-team").value.trim(), pos:$("#c-pos").value.trim().toUpperCase(), custom:true};
+  S.customs = S.customs.filter(x=>x.id!==c.id).concat(c); S.items.push({k:"p",id:c.id});
+  ["#c-name","#c-team","#c-pos"].forEach(s=>$(s).value=""); save(); render(); GSR.toast("Added "+name);
+};
+function enc(o){ return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); }
+function dec(s){ s=s.replace(/-/g,"+").replace(/_/g,"/"); return JSON.parse(decodeURIComponent(escape(atob(s)))); }
+function shareURL(){
+  const used = onBoard();
+  return location.origin+location.pathname+"#b="+enc({t:S.title, i:S.items.map(i=>i.k==="t"?"|"+i.label:i.id), c:S.customs.filter(c=>used.has(c.id)).map(c=>[c.id,c.name,c.team,c.pos])});
+}
+$("#share").onclick = ()=>GSR.copy(shareURL(),"Share link copied");
+$("#txt").onclick = ()=>{
+  const ps = S.items.filter(i=>i.k==="p").slice(0,10).map((i,k)=>`${k+1}. ${P(i.id).name}`);
+  GSR.copy(`${S.title}:\n${ps.join("\n")}\n\nFull board: ${shareURL()}`, "Copied your top 10");
+};
+$("#img").onclick = async ()=>{
+  await document.fonts.ready;
+  const lim = +$("#imgn").value; let r=0; const rows=[];
+  for(const it of S.items){ if(it.k==="p"){ if(r>=lim) break; r++; rows.push({p:P(it.id),r}); } else if(r<lim) rows.push({t:it.label}); }
+  while(rows.length && rows[rows.length-1].t) rows.pop();
+  const cols = rows.length>34 ? 3 : 2, per = Math.ceil(rows.length/cols), rowH = cols===3?38:56, W=1200;
+  const colW = (W-80-(cols-1)*20)/cols, H = 126+30+per*rowH+24+54;
+  const c=document.createElement("canvas"); c.width=W; c.height=H; const g=c.getContext("2d");
+  g.fillStyle="#fff"; g.fillRect(0,0,W,H);
+  GSR.drawHeader(g,W,S.title.toUpperCase().slice(0,40),"2027 NBA Draft · built at Gar's Scouting Report");
+  rows.forEach((row,k)=>{
+    const col=Math.floor(k/per), rr=k%per, x=40+col*(colW+20), y=156+rr*rowH;
+    if(row.t){ g.fillStyle="#0B2239"; g.fillRect(x,y,colW,rowH-6); g.fillStyle="#fff"; g.font=(cols===3?"22px":"28px")+" 'Bebas Neue', Impact"; g.fillText(row.t.toUpperCase().slice(0,30),x+12,y+(cols===3?24:35)); return; }
+    g.fillStyle=rr%2?"#F6F8FB":"#fff"; g.fillRect(x,y,colW,rowH-6);
+    g.fillStyle="#E2500A"; g.font=(cols===3?"24px":"32px")+" 'Bebas Neue', Impact"; g.textAlign="center"; g.fillText(String(row.r),x+22,y+(cols===3?25:36)); g.textAlign="left";
+    g.fillStyle="#0E1A26"; g.font=(cols===3?"700 17px":"700 21px")+" Barlow, Arial"; g.fillText(row.p.name.slice(0,24),x+50,y+(cols===3?20:26));
+    g.fillStyle="#5A6878"; g.font=(cols===3?"500 12px":"500 14px")+" 'IBM Plex Mono'"; g.fillText(`${row.p.pos||""} · ${row.p.team||""}`.slice(0,cols===3?34:44),x+50,y+(cols===3?31:45));
+  });
+  GSR.drawFooter(g,W,H);
+  GSR.download(c,"gsr-2027-big-board.png");
+};
+
+/* boot */
+BOARD = await GSR.loadBoard(); BOARD.forEach(p=>BY[p.id]=p);
+const h = location.hash.match(/#b=([\w-]+)/);
+if(h){
+  try{
+    const d = dec(h[1]); VIEW = true;
+    S = {title:d.t||"Shared board", customs:(d.c||[]).map(([id,name,team,pos])=>({id,name,team,pos,custom:true})), items:[]};
+    S.items = d.i.map(x=>x[0]==="|"?{k:"t",label:x.slice(1)}:{k:"p",id:x}).filter(i=>i.k==="t"||P(i.id));
+    $("#viewbanner").hidden=false;
+    $("#viewbanner").innerHTML = `<div class="flag" style="margin:10px 0">You are viewing a shared board. <a href="#" id="copyit">Edit a copy</a> or <a href="./">start your own</a>.</div>`;
+    $("#copyit").onclick = e=>{ e.preventDefault(); VIEW=false; history.replaceState(null,"",location.pathname); $("#viewbanner").hidden=true; save(); render(); };
+  }catch(err){ GSR.toast("That share link could not be read"); }
+}
+if(!VIEW){
+  const saved = GSR.store.get("gsrBoard", null);
+  if(saved && saved.items){ S = {customs:[], ...saved}; S.items = S.items.filter(i=>i.k==="t"||P(i.id)); }
+  else seed("gar");
+  // players added to my board since this was saved go to the pool, not onto the user's board
+}
+render();
+})();
+</script>
+</body>
+</html>
