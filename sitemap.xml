@@ -286,16 +286,6 @@
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://zachigarland.github.io/gsr-draft-lab/players/motiejus-krivas/</loc>
-    <lastmod>2026-11-25</lastmod>
-    <changefreq>daily</changefreq>
-  </url>
-  <url>
-    <loc>https://zachigarland.github.io/gsr-draft-lab/players/thomas-haugh/</loc>
-    <lastmod>2026-11-25</lastmod>
-    <changefreq>daily</changefreq>
-  </url>
-  <url>
     <loc>https://zachigarland.github.io/gsr-draft-lab/players/colben-landrew/</loc>
     <lastmod>2026-11-25</lastmod>
     <changefreq>daily</changefreq>
@@ -306,12 +296,12 @@
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://zachigarland.github.io/gsr-draft-lab/players/ethan-brown/</loc>
+    <loc>https://zachigarland.github.io/gsr-draft-lab/players/motiejus-krivas/</loc>
     <lastmod>2026-11-25</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://zachigarland.github.io/gsr-draft-lab/players/patrick-ngongba-ii/</loc>
+    <loc>https://zachigarland.github.io/gsr-draft-lab/players/thomas-haugh/</loc>
     <lastmod>2026-11-25</lastmod>
     <changefreq>daily</changefreq>
   </url>
@@ -321,7 +311,7 @@
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://zachigarland.github.io/gsr-draft-lab/players/davis-fogle/</loc>
+    <loc>https://zachigarland.github.io/gsr-draft-lab/players/ethan-brown/</loc>
     <lastmod>2026-11-25</lastmod>
     <changefreq>daily</changefreq>
   </url>
@@ -332,6 +322,16 @@
   </url>
   <url>
     <loc>https://zachigarland.github.io/gsr-draft-lab/players/billy-richmond-iii/</loc>
+    <lastmod>2026-11-25</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://zachigarland.github.io/gsr-draft-lab/players/patrick-ngongba-ii/</loc>
+    <lastmod>2026-11-25</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://zachigarland.github.io/gsr-draft-lab/players/davis-fogle/</loc>
     <lastmod>2026-11-25</lastmod>
     <changefreq>daily</changefreq>
   </url>
@@ -356,27 +356,12 @@
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://zachigarland.github.io/gsr-draft-lab/players/alex-condon/</loc>
-    <lastmod>2026-11-25</lastmod>
-    <changefreq>daily</changefreq>
-  </url>
-  <url>
-    <loc>https://zachigarland.github.io/gsr-draft-lab/players/najai-hines/</loc>
-    <lastmod>2026-11-25</lastmod>
-    <changefreq>daily</changefreq>
-  </url>
-  <url>
-    <loc>https://zachigarland.github.io/gsr-draft-lab/players/abdou-toure/</loc>
-    <lastmod>2026-11-25</lastmod>
-    <changefreq>daily</changefreq>
-  </url>
-  <url>
     <loc>https://zachigarland.github.io/gsr-draft-lab/players/miikka-muurinen/</loc>
     <lastmod>2026-11-25</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://zachigarland.github.io/gsr-draft-lab/players/sayon-keita/</loc>
+    <loc>https://zachigarland.github.io/gsr-draft-lab/players/alex-condon/</loc>
     <lastmod>2026-11-25</lastmod>
     <changefreq>daily</changefreq>
   </url>
@@ -391,12 +376,27 @@
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://zachigarland.github.io/gsr-draft-lab/players/jj-andrews/</loc>
+    <loc>https://zachigarland.github.io/gsr-draft-lab/players/najai-hines/</loc>
     <lastmod>2026-11-25</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
     <loc>https://zachigarland.github.io/gsr-draft-lab/players/dash-daniels/</loc>
+    <lastmod>2026-11-25</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://zachigarland.github.io/gsr-draft-lab/players/abdou-toure/</loc>
+    <lastmod>2026-11-25</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://zachigarland.github.io/gsr-draft-lab/players/sayon-keita/</loc>
+    <lastmod>2026-11-25</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://zachigarland.github.io/gsr-draft-lab/players/jj-andrews/</loc>
     <lastmod>2026-11-25</lastmod>
     <changefreq>daily</changefreq>
   </url>
@@ -436,7 +436,17 @@
     <changefreq>daily</changefreq>
   </url>
   <url>
+    <loc>https://zachigarland.github.io/gsr-draft-lab/players/david-mirkovic/</loc>
+    <lastmod>2026-11-25</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
     <loc>https://zachigarland.github.io/gsr-draft-lab/players/pavle-backo/</loc>
+    <lastmod>2026-11-25</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://zachigarland.github.io/gsr-draft-lab/players/klark-reithauser/</loc>
     <lastmod>2026-11-25</lastmod>
     <changefreq>daily</changefreq>
   </url>
@@ -512,16 +522,6 @@
   </url>
   <url>
     <loc>https://zachigarland.github.io/gsr-draft-lab/players/bryson-howard/</loc>
-    <lastmod>2026-11-25</lastmod>
-    <changefreq>daily</changefreq>
-  </url>
-  <url>
-    <loc>https://zachigarland.github.io/gsr-draft-lab/players/david-mirkovic/</loc>
-    <lastmod>2026-11-25</lastmod>
-    <changefreq>daily</changefreq>
-  </url>
-  <url>
-    <loc>https://zachigarland.github.io/gsr-draft-lab/players/klark-reithauser/</loc>
     <lastmod>2026-11-25</lastmod>
     <changefreq>daily</changefreq>
   </url>
