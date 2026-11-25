@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>2027 NBA Mock Draft Simulator | Gar's Scouting Report</title>
-<meta name="description" content="Build your own 2027 NBA mock draft. Use a 3-2-1 lottery sim or the current standings, pick for one team or all 30, let the CPU draft off Gar's board or consensus, then share it.">
+<meta name="description" content="Free 2027 NBA mock draft simulator. 3-2-1 lottery, traded picks, two rounds, team needs, pick trades and draft grades for every team. Share your mock in one click.">
 <link rel="canonical" href="https://zachigarland.github.io/gsr-draft-lab/mock/">
 <meta property="og:title" content="2027 NBA Mock Draft Simulator | Gar's Scouting Report">
 <meta property="og:description" content="Pick for your team, sim the rest, share the mock. 88 prospects with stats and tiers.">
@@ -45,6 +45,28 @@ details.add{margin-top:10px}
 details.add summary{cursor:pointer;color:var(--accent);font-weight:600}
 .addf{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .viewbanner{margin:12px 0}
+.tradebox{margin-top:10px;border-color:var(--navy)}
+.ib{border:0;background:transparent;cursor:pointer;color:var(--muted);font-size:16px;padding:6px 8px;border-radius:5px}
+.ib:hover{background:var(--panel-2);color:var(--navy)}
+.tsides{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:640px){.tsides{grid-template-columns:1fr}}
+.tside{background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px}
+.tside label.ck{display:flex;align-items:center;gap:8px;padding:5px 2px;font-size:14px;cursor:pointer}
+.tside label.ck input{width:18px;height:18px}
+.tval{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:6px}
+.tbar{height:8px;border-radius:4px;background:var(--panel-2);overflow:hidden;margin:10px 0 4px;display:flex}
+.tbar span{display:block;height:100%}
+.tmsg{margin-top:8px;font-size:14px}
+.tmsg.ok{color:var(--up)}.tmsg.no{color:var(--down)}
+#tradelog .tl{background:#FFF7F2;border:1px solid #F3D3BF;border-radius:8px;padding:7px 10px;font-size:13px;margin-bottom:6px}
+.grades{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.gc{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px}
+.gc.mine{border:2px solid var(--accent)}
+.gc .gh{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.gc .gl{font-family:var(--display);font-size:40px;line-height:1;margin-left:auto;color:var(--navy)}
+.gc .gl.A{color:#1E8E4F}.gc .gl.B{color:#1F5FA8}.gc .gl.C{color:#A2420A}.gc .gl.D,.gc .gl.F{color:#C8382E}
+.gc ul{margin:6px 0;padding-left:18px;font-size:13.5px}
+.gc p{margin:6px 0 0;font-size:13.5px}
 details.needs{margin-top:14px}
 details.needs summary{cursor:pointer;color:var(--accent);font-weight:600}
 .need{font-family:var(--mono);font-size:10.5px;padding:2px 6px;border-radius:4px;white-space:nowrap}
@@ -53,6 +75,7 @@ details.needs summary{cursor:pointer;color:var(--accent);font-weight:600}
 .needline{font-size:12.5px;color:var(--muted);margin-top:2px}
 .r2{font-family:var(--display);font-size:24px;color:var(--navy);margin:14px 0 4px;border-top:3px solid var(--navy);padding-top:8px}
 </style>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "2027 NBA Mock Draft Simulator", "description": "Build a 2027 NBA mock draft with the 3-2-1 lottery, traded picks, team needs, pick trades and draft grades.", "url": "https://zachigarland.github.io/gsr-draft-lab/mock/", "applicationCategory": "SportsApplication", "operatingSystem": "Any", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "author": {"@type": "Person", "name": "Zach Garland", "url": "https://x.com/NBATOPSCOUT"}, "isPartOf": {"@type": "WebSite", "name": "Gar's Scouting Report", "url": "https://zachigarland.github.io/gsr-draft-lab/"}}</script>
 </head>
 <body>
 <div class="wrap">
@@ -90,10 +113,12 @@ details.needs summary{cursor:pointer;color:var(--accent);font-weight:600}
   <div class="layout" id="draft" hidden>
     <div class="board-col">
       <h2 style="margin-top:4px">Draft order</h2>
+      <div id="tradelog"></div>
       <div class="picks" id="picks"></div>
     </div>
     <div>
       <div class="clockbar" id="clock"></div>
+      <section class="panel tradebox" id="tradebox" hidden></section>
       <div class="filters">
         <input type="search" id="q" placeholder="Search players or schools" aria-label="Search players">
         <div class="seg" id="f-pos"><button data-v="" aria-pressed="true">All</button><button data-v="G">Guards</button><button data-v="W">Wings</button><button data-v="B">Bigs</button></div>
@@ -115,6 +140,12 @@ details.needs summary{cursor:pointer;color:var(--accent);font-weight:600}
       <button class="btn" id="txt">Copy for X</button>
       <button class="btn" id="again">Start a new mock</button>
     </div>
+  </section>
+  <section id="gradesec" hidden>
+    <h2>Draft grades</h2>
+    <div class="small" id="gradenote"></div>
+    <div class="row" style="margin:10px 0"><button class="btn" id="gtxt">Copy grades for X</button></div>
+    <div class="grades" id="grades"></div>
   </section>
   <footer>Gar's Scouting Report · Draft order uses the 3-2-1 lottery rules and ESPN standings. Traded-pick rules as of <span id="ownasof"></span>. "Value" and "reach" compare the pick number to my board rank. Team needs come from ESPN player stats.</footer>
 </div>
@@ -196,8 +227,9 @@ function renderClock(){
   const nd = NEEDS && NEEDS[o.owner];
   const needTxt = nd ? `<div class="needline">Needs: ${nd.order.slice(0,2).map((g,i)=>`<span class="need n${i+1}">${GSR.GRP[g]}</span>`).join(" ")} <span class="small">· top ${GSR.GRP[nd.order[0]].toLowerCase()}s now: ${nd.core[nd.order[0]].join(", ")||"none"}</span></div>` : "";
   $("#clock").innerHTML = `<div class="who">${GSR.nbaChip(o.owner)}<div><b>Pick ${o.pick}: ${GSR.teamName(o.owner)}</b>${o.owner!==o.orig?` <span class="small">via ${o.orig}</span>`:""}<div class="small">${mine?"Your pick. Hit Draft on a player.":"CPU team"}</div>${needTxt}</div></div>
-    <div class="row">${cur()?`<button class="btn" id="undo">Undo</button>`:""}${mine?`<button class="btn" id="auto">Auto pick</button>${M.team==="ALL"?`<button class="btn primary" id="tomine">Sim rest</button>`:""}`:`<button class="btn" id="next">Sim pick</button><button class="btn primary" id="tomine">${M.team==="ALL"?"Sim rest":"Sim to my pick"}</button>`}</div>`;
+    <div class="row"><button class="btn" id="trade">Trade</button>${cur()?`<button class="btn" id="undo">Undo</button>`:""}${mine?`<button class="btn" id="auto">Auto pick</button>${M.team==="ALL"?`<button class="btn primary" id="tomine">Sim rest</button>`:""}`:`<button class="btn" id="next">Sim pick</button><button class="btn primary" id="tomine">${M.team==="ALL"?"Sim rest":"Sim to my pick"}</button>`}</div>`;
   $("#undo") && ($("#undo").onclick=undo);
+  $("#trade") && ($("#trade").onclick=openTrade);
   $("#auto") && ($("#auto").onclick=()=>draft(cpuPick()));
   $("#next") && ($("#next").onclick=()=>{ draft(cpuPick(), true); });
   $("#tomine") && ($("#tomine").onclick=()=>runCpu(true));
@@ -233,7 +265,7 @@ function renderDone(){
   bits.push(vals[worst]<=-5 ? `Biggest reach: ${nm(worst)} (my No. ${P(M.picks[worst]).rank}).` : `No big reaches.`);
   $("#donesum").textContent = bits.join(" ");
 }
-function render(){ renderPicks(); renderClock(); renderAvail(); renderDone(); }
+function render(){ renderPicks(); renderClock(); renderAvail(); renderDone(); renderTradeLog(); renderGrades(); }
 
 function draft(id, single){
   if(!id || cur()>=total()) return;
@@ -264,9 +296,129 @@ function start(fromSaved){
   if(!M.view && M.team!=="ALL" && !isMine(cur())) runCpu(false);
 }
 
+
+/* ---------- trades ---------- */
+const PV = p => 1000/Math.sqrt(p) * (p>30 ? 0.55 : 1);
+const FUT = {"2028 1st":267, "2029 1st":240, "2028 2nd":45, "2029 2nd":40};
+let T = null;
+const teamPicks = t => M.order.map((o,k)=>({o,k})).filter(x=>x.k>=cur() && x.o.owner===t);
+function pickEquiv(v){ let best=1, d=1e9; for(let p=1;p<=60;p++){ const e=Math.abs(PV(p)-v); if(e<d){d=e;best=p;} } return best; }
+function openTrade(){
+  if(M.view) return;
+  const onClock = cur()<total() ? M.order[cur()].owner : null;
+  const owners = [...new Set(M.order.slice(cur()).map(o=>o.owner))].sort();
+  const a = M.team!=="ALL" ? M.team : (onClock||owners[0]);
+  const b = owners.find(t=>t!==a) || owners[0];
+  T = {a, b, ga:new Set(), gb:new Set(), fa:new Set(), fb:new Set(), msg:""};
+  $("#tradebox").hidden = false; renderTrade(); $("#tradebox").scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function sideVal(side){
+  const g = side==="a"?T.ga:T.gb, f = side==="a"?T.fa:T.fb;
+  let v=0; g.forEach(k=>v+=PV(k+1)); f.forEach(n=>v+=FUT[n]); return v;
+}
+function renderTrade(){
+  const owners = [...new Set([...Object.keys(GSR.NBA)])].sort();
+  const side = s => {
+    const t = T[s], g = s==="a"?T.ga:T.gb, f = s==="a"?T.fa:T.fb;
+    const lock = s==="a" && M.team!=="ALL";
+    const picks = teamPicks(t);
+    return `<div class="tside"><div class="ctl"><label>${s==="a"?(lock?"You":"Team 1"):"Team 2"} send</label>
+      <select data-s="${s}" ${lock?"disabled":""}>${owners.filter(o=>o!==T[s==="a"?"b":"a"]).map(o=>`<option value="${o}" ${o===t?"selected":""}>${GSR.teamName(o)}</option>`).join("")}</select></div>
+      ${picks.length?picks.map(x=>`<label class="ck"><input type="checkbox" data-s="${s}" data-k="${x.k}" ${g.has(x.k)?"checked":""}> Pick ${x.o.pick}${x.o.orig!==t?` <span class="small">(via ${x.o.orig})</span>`:""}</label>`).join(""):`<div class="small" style="margin:6px 0">No picks left in this draft.</div>`}
+      ${Object.keys(FUT).map(n=>`<label class="ck"><input type="checkbox" data-s="${s}" data-f="${n}" ${f.has(n)?"checked":""}> ${n} <span class="small">(future)</span></label>`).join("")}
+      <div class="tval">Value sent: ${Math.round(sideVal(s))}</div></div>`;
+  };
+  const va = sideVal("a"), vb = sideVal("b"), tot = va+vb || 1;
+  let verdict = "Pick what each side sends.";
+  if(va && vb){ const d = (vb-va)/Math.max(va,vb); verdict = Math.abs(d)<0.06 ? "Fair trade" : d>0 ? `${T.a} wins this trade by about ${Math.round(Math.abs(d)*100)}%` : `${T.b} wins this trade by about ${Math.round(Math.abs(d)*100)}%`; }
+  $("#tradebox").innerHTML = `<div class="row" style="justify-content:space-between"><h3 style="margin:0">Trade builder</h3><button class="ib" id="tclose" aria-label="Close trade builder">✕</button></div>
+    <div class="tsides">${side("a")}${side("b")}</div>
+    <div class="tbar"><span style="width:${va/tot*100}%;background:${(GSR.NBA[T.a]||[])[2]}"></span><span style="width:${vb/tot*100}%;background:${(GSR.NBA[T.b]||[])[2]}"></span></div>
+    <div class="row" style="justify-content:space-between"><div class="small">${verdict}. Values use a standard draft pick curve where No. 1 is 1000 and No. 30 is about 180.</div>
+    <button class="btn primary" id="tgo" ${(T.ga.size||T.gb.size)&&(va||vb)?"":"disabled"}>${M.team==="ALL"?"Make trade":"Propose trade"}</button></div>
+    ${T.msg?`<div class="tmsg ${T.ok?"ok":"no"}">${T.msg}</div>`:""}`;
+  $("#tclose").onclick = ()=>{ $("#tradebox").hidden = true; T=null; };
+  $$("#tradebox select").forEach(s=>s.onchange=()=>{ T[s.dataset.s]=s.value; (s.dataset.s==="a"?T.ga:T.gb).clear(); (s.dataset.s==="a"?T.fa:T.fb).clear(); T.msg=""; renderTrade(); });
+  $$("#tradebox input[type=checkbox]").forEach(c=>c.onchange=()=>{
+    const s=c.dataset.s, set = c.dataset.f ? (s==="a"?T.fa:T.fb) : (s==="a"?T.ga:T.gb), key = c.dataset.f || +c.dataset.k;
+    c.checked ? set.add(key) : set.delete(key); T.msg=""; renderTrade(); });
+  $("#tgo").onclick = proposeTrade;
+}
+function proposeTrade(){
+  const va = sideVal("a"), vb = sideVal("b");
+  if(M.team!=="ALL" && vb > va*0.97){
+    const need = vb - va*0.97;
+    T.ok=false; T.msg = `${GSR.teamName(T.b)} said no. They want about ${Math.round(need)} more in value, roughly a No. ${pickEquiv(need)} pick.`;
+    renderTrade(); return;
+  }
+  T.ga.forEach(k=>M.order[k].owner=T.b); T.gb.forEach(k=>M.order[k].owner=T.a);
+  (M.trades ||= []).push({a:T.a, b:T.b, ga:[...T.ga].map(k=>k+1), gb:[...T.gb].map(k=>k+1), fa:[...T.fa], fb:[...T.fb], va:Math.round(va), vb:Math.round(vb)});
+  const done = `${GSR.teamName(T.a)} and ${GSR.teamName(T.b)} made a deal.`;
+  $("#tradebox").hidden = true; T=null; save(); render(); GSR.toast(done);
+  if(M.team!=="ALL" && cur()<total() && !isMine(cur())) runCpu(false);
+}
+const tradeTxt = tr => { const s = (picks,f)=>[...picks.map(n=>"No. "+n), ...f].join(" + ") || "nothing"; return `${tr.a} sends ${s(tr.ga,tr.fa)} to ${tr.b} for ${s(tr.gb,tr.fb)}`; };
+function renderTradeLog(){
+  const tr = M.trades||[];
+  $("#tradelog").innerHTML = tr.length ? `<h3 style="font-size:20px;margin:4px 0 6px">Trades</h3>` + tr.map(t=>`<div class="tl">${tradeTxt(t)}</div>`).join("") : "";
+}
+
+/* ---------- draft grades ---------- */
+const GRADES = [[1.0,"A+"],[0.6,"A"],[0.35,"A-"],[0.15,"B+"],[-0.05,"B"],[-0.25,"B-"],[-0.45,"C+"],[-0.7,"C"],[-0.95,"C-"],[-1.3,"D"],[-99,"F"]];
+const letter = s => GRADES.find(g=>s>=g[0])[1];
+function gradeTeams(){
+  const by = {};
+  M.picks.forEach((id,k)=>{ const o=M.order[k], p=P(id); if(!p) return; (by[o.owner] ||= []).push({k, p}); });
+  const out = [];
+  for(const t in by){
+    const rows = by[t].map(({k,p})=>{
+      const d = (k+1)-p.rank, ad = Math.max(0, Math.abs(d)-2);
+      const val = p.custom ? 0 : Math.max(-2, Math.min(2, Math.sign(d)*ad/(3+0.12*(k+1))));
+      const fit = GSR.needFit(NEEDS, t, p.grp);
+      const tierB = p.tier==="A"?0.35 : p.tier==="B"?0.15 : 0;
+      return {k, p, val, fit, s: val + 0.25 + tierB + (fit===2?0.3:fit===1?0.12:0)};
+    });
+    let score = rows.reduce((a,r)=>a+r.s,0)/rows.length;
+    const trs = (M.trades||[]).filter(x=>x.a===t||x.b===t);
+    let tnet = 0; trs.forEach(x=>{ tnet += x.a===t ? x.vb-x.va : x.va-x.vb; });
+    if(trs.length) score += Math.max(-0.5, Math.min(0.5, tnet/400));
+    const best = rows.reduce((a,r)=>r.val>a.val?r:a, rows[0]), worst = rows.reduce((a,r)=>r.val<a.val?r:a, rows[0]);
+    const why = [];
+    if(best.val>=0.5) why.push(`Best value: ${best.p.name} at ${best.k+1}, and I have him No. ${best.p.rank}.`);
+    else if(!best.p.custom && Math.abs(best.p.rank-(best.k+1))<=2) why.push(`${best.p.name} at ${best.k+1} is right where I have him (No. ${best.p.rank}).`);
+    else why.push(`${best.p.name} at ${best.k+1} is fair for my No. ${best.p.rank}.`);
+    if(rows.length>1 || worst!==best){ if(worst.val<=-0.6) why.push(`Reach: ${worst.p.name} at ${worst.k+1}, when I have him No. ${worst.p.rank}.`); }
+    else if(worst.val<=-0.6) why.splice(0,1,`Reach: ${worst.p.name} at ${worst.k+1}, when I have him No. ${worst.p.rank}.`);
+    if(NEEDS && NEEDS[t]){
+      const top = NEEDS[t].order[0], hit = rows.find(r=>r.p.grp===top);
+      why.push(hit ? `Filled the top need at ${GSR.GRP[top].toLowerCase()} with ${hit.p.name}.` : `Did not address the top need at ${GSR.GRP[top].toLowerCase()}.`);
+    }
+    trs.forEach(x=>{ const other = x.a===t?x.b:x.a, net = x.a===t ? x.vb-x.va : x.va-x.vb;
+      why.push(Math.abs(net)<40 ? `Even trade with ${other}.` : net>0 ? `Won the trade with ${other}.` : `Paid up in the trade with ${other}.`); });
+    out.push({t, rows, score, g:letter(score), why, first: rows[0].k});
+  }
+  return out.sort((a,b)=>a.first-b.first);
+}
+function renderGrades(){
+  const fin = cur()>=total() && total()>0;
+  $("#gradesec").hidden = !fin; if(!fin) return;
+  const G = gradeTeams();
+  if(M.team!=="ALL") G.sort((a,b)=>(b.t===M.team)-(a.t===M.team));
+  $("#gradenote").textContent = `Grades compare each pick to my board, adjusted for where it was made (a 5-spot reach at No. 3 hurts more than at No. 40). Landing a Tier A or B player helps, filling a team need adds a little${NEEDS?"":" when needs load"}, and trades count by pick value.`;
+  $("#grades").innerHTML = G.map(x=>`<div class="gc ${x.t===M.team?"mine":""}"><div class="gh">${GSR.nbaChip(x.t)}<b>${GSR.teamName(x.t)}</b><span class="gl ${x.g[0]}">${x.g}</span></div>
+    <ul>${x.rows.map(r=>`<li>${r.k+1}. ${GSR.esc(r.p.name)} <span class="small">${GSR.esc(r.p.pos||"")}${r.p.custom?"":" · my No. "+r.p.rank}</span></li>`).join("")}</ul>
+    ${x.why.map(w=>`<p>${GSR.esc(w)}</p>`).join("")}</div>`).join("");
+  $("#gtxt").onclick = ()=>{
+    const mine = G.find(x=>x.t===M.team);
+    const t = mine ? `My 2027 mock: ${GSR.teamName(mine.t)} get ${/^[AF]/.test(mine.g)?"an":"a"} ${mine.g}.\n${mine.rows.map(r=>`${r.k+1}. ${r.p.name}`).join("\n")}\n${mine.why[0]}`
+      : `2027 mock draft grades:\n` + G.slice().sort((a,b)=>b.score-a.score).slice(0,6).map(x=>`${x.t}: ${x.g}`).join("\n");
+    GSR.copy(t + `\n\nMock your own: https://zachigarland.github.io/gsr-draft-lab/mock/`, "Grades copied");
+  };
+}
+
 /* exports */
 function shareURL(){
-  const data = {o:M.full||M.order.slice(0,30).map(x=>x.orig), o2: total()>30 ? M.full2 : undefined, n:total(), p:M.picks, c:(M.customs||[]).filter(c=>M.picks.includes(c.id)).map(c=>[c.id,c.name,c.team,c.pos])};
+  const data = {o:M.full||M.order.slice(0,30).map(x=>x.orig), o2: total()>30 ? M.full2 : undefined, n:total(), p:M.picks, w:M.order.map(x=>x.owner), tr:M.trades||[], c:(M.customs||[]).filter(c=>M.picks.includes(c.id)).map(c=>[c.id,c.name,c.team,c.pos])};
   return location.origin + location.pathname + "#m=" + enc(data);
 }
 $("#share").onclick = ()=>GSR.copy(shareURL(), "Share link copied");
@@ -335,7 +487,8 @@ if(h){
     const d = dec(h[1]);
     const customs = (d.c||[]).map(([id,name,team,pos])=>({id,name,team,pos,custom:true,rank:99,cons:99}));
     const r1 = GSR.resolveOwners(d.o), ord = d.o2 ? r1.concat(GSR.resolveOwners2(d.o2, r1)) : r1;
-    start({full:d.o, full2:d.o2, order: ord.slice(0, d.n||ord.length), picks: d.p.filter(id=>BY[id]||customs.find(c=>c.id===id)), team:"ALL", cpu:"board", customs, view:true});
+    const ordN = ord.slice(0, d.n||ord.length); if(d.w) ordN.forEach((x,i)=>{ if(d.w[i]) x.owner=d.w[i]; });
+    start({full:d.o, full2:d.o2, trades:d.tr||[], order: ordN, picks: d.p.filter(id=>BY[id]||customs.find(c=>c.id===id)), team:"ALL", cpu:"board", customs, view:true});
     $("#viewbanner").hidden = false;
     $("#viewbanner").innerHTML = `<div class="flag">You are viewing a shared mock. <a href="./">Build your own</a>.</div>`;
   }catch(e){ GSR.toast("That share link could not be read"); }
