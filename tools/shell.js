@@ -9,14 +9,14 @@
   const BASE = me ? me.src.replace(/tools\/shell\.js.*$/,"") : "/";
   const path = location.href.split(/[?#]/)[0];
   const NAV = [
-    ["", "2027 Big Board"], ["mock/", "Mock Draft"], ["bigboard/", "Board Builder"], ["lottery/", "Lottery"], ["about/", "About"]
+    ["", "2027 Big Board"], ["players/", "Prospects"], ["mock/", "Mock Draft"], ["bigboard/", "Board Builder"], ["lottery/", "Lottery"], ["about/", "About"]
   ];
   if(CONFIG.substack) NAV.push([CONFIG.substack, "Newsletter"]);
   const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const slug = s => s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
-  const isCurrent = href => { const u = /^https?:/.test(href) ? href : BASE+href; return u===path || u===path+"/" || (href==="" && (path===BASE || path===BASE+"index.html")); };
+  const isCurrent = href => { if(/^https?:/.test(href)) return false; if(href==="") return path===BASE || path===BASE+"index.html"; return path.startsWith(BASE+href); };
 
-  const css = document.createElement("link"); css.rel="stylesheet"; css.href = BASE+"tools/shell.css?v=20261125a"; document.head.appendChild(css);
+  const css = document.createElement("link"); css.rel="stylesheet"; css.href = BASE+"tools/shell.css?v=20261125b"; document.head.appendChild(css);
 
   function mount(){
     const hd = document.createElement("header"); hd.className = "gsr-hd";
@@ -32,7 +32,7 @@
     const ft = document.createElement("footer"); ft.className = "gsr-ft";
     ft.innerHTML = `<div class="gsr-in">
       <div><b>Gar's Scouting Report</b><p>Independent NBA Draft scouting. Big boards, reports, comps and draft tools.</p><p><a href="https://x.com/NBATOPSCOUT" rel="noopener">@NBATOPSCOUT on X</a></p></div>
-      <div><b>Draft</b>${NAV.slice(0,4).map(([h,t])=>`<a href="${BASE+h}">${t}</a>`).join("")}</div>
+      <div><b>Draft</b>${NAV.slice(0,5).map(([h,t])=>`<a href="${BASE+h}">${t}</a>`).join("")}</div>
       <div><b>Site</b><a href="${BASE}about/">About and method</a>${CONFIG.substack?`<a href="${CONFIG.substack}" rel="noopener">Newsletter</a>`:""}<a href="${BASE}sitemap.xml">Sitemap</a></div>
       <p class="gsr-fine">Stats from ESPN, RealGM and league sites. Pick rules from the NBA, Hoops Rumors and RealGM. Not affiliated with the NBA or any team.</p>
     </div>`;
@@ -88,11 +88,12 @@
       res.hidden = false;
       res.querySelectorAll("button").forEach(b=>b.onmousedown = e=>{ e.preventDefault(); pick(+b.dataset.i); });
     };
-    const pick = i => { const p = hits[i]; if(!p) return; q.value=""; hits=[]; draw(); q.blur(); go(p); };
+    const pick = i => { const p = hits[i]; if(!p) return; q.value=""; hits=[]; draw(); q.blur(); location.href = BASE + "players/" + p.id + "/"; };
     q.addEventListener("focus", ()=>getList());
     q.addEventListener("input", async ()=>{
       const L = await getList(), t = q.value.trim().toLowerCase();
-      hits = t ? L.filter(p=>(p.name+" "+p.team).toLowerCase().includes(t)).slice(0,8) : []; sel = 0; draw();
+      const nz = s => s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase(); const tt = nz(t);
+      hits = t ? L.filter(p=>nz(p.name+" "+p.team+" "+p.pos).includes(tt)).slice(0,8) : []; sel = 0; draw();
     });
     q.addEventListener("keydown", e=>{
       if(e.key==="ArrowDown"){ sel=Math.min(sel+1,hits.length-1); draw(); e.preventDefault(); }

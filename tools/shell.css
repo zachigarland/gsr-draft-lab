@@ -7,10 +7,10 @@
 .gsr-logo span{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-size:10.5px;color:#E2500A;margin-top:3px;letter-spacing:.4px}
 .gsr-nav{display:flex;gap:2px;margin-left:auto;flex:0 1 auto;overflow-x:auto;scrollbar-width:none}
 .gsr-nav::-webkit-scrollbar{display:none}
-.gsr-nav a{font-family:"Bebas Neue",Impact,"Arial Narrow",sans-serif;font-size:19px;letter-spacing:.4px;color:#0B2239;text-decoration:none;padding:7px 10px;border-radius:6px;white-space:nowrap}
+.gsr-nav a{font-family:"Bebas Neue",Impact,"Arial Narrow",sans-serif;font-size:19px;letter-spacing:.4px;color:#0B2239;text-decoration:none;padding:7px 8px;border-radius:6px;white-space:nowrap}
 .gsr-nav a:hover{background:#EDF1F6}
 .gsr-nav a[aria-current="page"]{background:#0B2239;color:#fff}
-.gsr-search{position:relative;flex:0 1 230px;order:3}
+.gsr-search{position:relative;flex:0 1 190px;order:3}
 .gsr-search input{width:100%;font:500 14px "Barlow",system-ui,sans-serif;color:#0E1A26;background:#F6F8FB;border:1px solid #DCE3EB;border-radius:8px;padding:8px 10px;min-height:38px}
 .gsr-search input:focus{outline:2px solid #E2500A;outline-offset:1px;background:#fff}
 .gsr-res{position:absolute;right:0;top:calc(100% + 6px);width:min(360px,92vw);background:#fff;border:1px solid #DCE3EB;border-radius:10px;box-shadow:0 10px 28px rgba(11,34,57,.16);padding:4px;z-index:50}
@@ -28,7 +28,7 @@
 .gsr-ft a:hover{color:#FF9A5C}
 .gsr-ft p{margin:0 0 6px}
 .gsr-ft .gsr-fine{grid-column:1/-1;border-top:1px solid rgba(255,255,255,.15);padding-top:12px;font-size:12.5px;color:#9FB3C8}
-@media (max-width:900px){
+@media (max-width:1120px){
   .gsr-hd .gsr-in{flex-wrap:wrap;gap:8px;padding:8px 0}
   .gsr-search{order:2;flex:1 1 180px}
   .gsr-nav{order:3;flex:1 1 100%;margin-left:0}
