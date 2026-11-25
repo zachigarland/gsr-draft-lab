@@ -14,3 +14,7 @@ players_build.py writes players/<slug>/index.html for every prospect, players/in
 
 ## Privacy
 No birthdates anywhere in public text. Some prospects are minors. Ages show as draft-night age only.
+
+
+## Team pages and pick tracker
+teams_build.py writes teams/<abbr>/, teams/index.html and draft-picks/index.html with every 2027 pick rule as plain text. It does not need to run daily: the live numbers (records, lottery odds, ownership chances, needs, best fits) come from tools/teams.js in the browser. Rerun it only when a pick trade changes the rules, and update GSR.resolveOwners / resolveOwners2 in tools/tools.js to match.

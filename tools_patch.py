@@ -2,7 +2,7 @@
 The shell itself lives in tools/shell.js and tools/shell.css on the main branch.
 Safe to run more than once."""
 
-TAG = '<script src="tools/shell.js?v=20261125b" defer></script>'
+TAG = '<script src="tools/shell.js?v=20261125c" defer></script>'
 CSS = '<style id="gsr-shell-fix">.slhead{top:var(--gsr-hd,0px)!important}</style>'
 
 def apply(h):

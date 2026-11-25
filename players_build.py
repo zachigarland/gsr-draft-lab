@@ -5,7 +5,7 @@ Usage: python3 players_build.py <out_root> "<Nov 25, 2026>" <2026-11-25>
 import json, os, re, sys, html, unicodedata
 W = os.path.dirname(os.path.abspath(__file__)) + '/'
 SITE = 'https://zachigarland.github.io/gsr-draft-lab/'
-V = '20261125b'
+V = '20261125c'
 TIERNAME = {'A': 'Tier A', 'B': 'Tier B', 'C': 'Tier C', 'D': 'Tier D', 'W': 'Watchlist'}
 OUTLETS = [('espn', 'ESPN'), ('br', 'Bleacher Report'), ('cbs', 'CBS Sports'), ('ndr', 'NBA Draft Room'),
            ('tk', 'Tankathon'), ('fs', 'FanSided'), ('ho', 'HoopObsession')]
@@ -240,7 +240,8 @@ def players_index(board, TEAMS, txt, iso):
     return ''.join(out)
 
 def sitemap(board, iso):
-    urls = [('', 'daily'), ('players/', 'daily'), ('mock/', 'weekly'), ('bigboard/', 'weekly'), ('lottery/', 'weekly'), ('about/', 'monthly')]
+    urls = [('', 'daily'), ('players/', 'daily'), ('teams/', 'daily'), ('draft-picks/', 'daily'), ('mock/', 'weekly'), ('bigboard/', 'weekly'), ('lottery/', 'weekly'), ('about/', 'monthly')]
+    urls += [(f'teams/{t}/', 'daily') for t in ['atl','bos','bkn','cha','chi','cle','dal','den','det','gsw','hou','ind','lac','lal','mem','mia','mil','min','nop','nyk','okc','orl','phi','phx','por','sac','sas','tor','uta','was']]
     urls += [(f'players/{slug(p["name"])}/', 'daily') for p in board]
     body = ''.join(f'  <url>\n    <loc>{SITE}{u}</loc>\n    <lastmod>{iso}</lastmod>\n    <changefreq>{c}</changefreq>\n  </url>\n' for u, c in urls)
     return f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{body}</urlset>\n'
