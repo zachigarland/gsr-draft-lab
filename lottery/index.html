@@ -12,7 +12,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../tools/tools.css?v=20261125b">
+<link rel="stylesheet" href="../tools/tools.css?v=20261125c">
 <style>
 .layout{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:18px;align-items:start;margin-top:14px}
 @media (max-width:980px){.layout{grid-template-columns:1fr}}
@@ -87,8 +87,8 @@
   <div class="pagenote">Gar's Scouting Report · Standings from ESPN. Traded-pick rules as of <span id="ownasof"></span>. Not affiliated with the NBA.</div>
 </div>
 
-<script src="../tools/shell.js?v=20261125b" defer></script>
-<script src="../tools/tools.js?v=20261125b"></script>
+<script src="../tools/shell.js?v=20261125c" defer></script>
+<script src="../tools/tools.js?v=20261125c"></script>
 <script>
 (async function(){
 const $ = s => document.querySelector(s);
@@ -118,10 +118,10 @@ function renderRound(lotOrder){
   const rec = Object.fromEntries(ST.teams.map(x=>[x.t,x]));
   $("#round").innerHTML = `<tr><th class="num">Pick</th><th>Owner</th><th>Original team</th><th class="num">Rec</th><th>Pick note</th></tr>` +
     own.map((p,i)=> (i===16?`<tr class="divider"><td colspan="5">Picks 17 to 30: non-lottery teams, worst record first</td></tr>`:"") +
-      `<tr><td class="num">${p.pick}</td><td>${GSR.ownerLabel(p)}</td><td>${GSR.teamName(p.orig)}</td><td class="num">${rec[p.orig].w}-${rec[p.orig].l}</td><td class="small">${GSR.OWN_NOTES[p.orig]||""}</td></tr>`).join("");
+      `<tr><td class="num">${p.pick}</td><td>${GSR.ownerLabel(p)}</td><td><a href="../teams/${p.orig.toLowerCase()}/" style="color:inherit">${GSR.teamName(p.orig)}</a></td><td class="num">${rec[p.orig].w}-${rec[p.orig].l}</td><td class="small">${GSR.OWN_NOTES[p.orig]||""}</td></tr>`).join("");
   const r2 = GSR.resolveOwners2(GSR.round2Order(ST.teams), own);
   $("#round2").innerHTML = `<tr><th class="num">Pick</th><th>Owner</th><th>Original team</th><th class="num">Rec</th><th>Pick note</th></tr>` +
-    r2.map(p=>`<tr><td class="num">${p.pick}</td><td>${GSR.ownerLabel(p)}</td><td>${GSR.teamName(p.orig)}</td><td class="num">${rec[p.orig].w}-${rec[p.orig].l}</td><td class="small">${p.note}</td></tr>`).join("");
+    r2.map(p=>`<tr><td class="num">${p.pick}</td><td>${GSR.ownerLabel(p)}</td><td><a href="../teams/${p.orig.toLowerCase()}/" style="color:inherit">${GSR.teamName(p.orig)}</a></td><td class="num">${rec[p.orig].w}-${rec[p.orig].l}</td><td class="small">${p.note}</td></tr>`).join("");
   $("#ownnote").textContent = lotOrder ? "Owners above reflect your simulated lottery. Conditional picks (protections, swaps, most-favorable deals) are resolved for this exact order."
     : "Before a sim, picks 1 to 16 are listed by record, worst first. Under the 3-2-1 rules that is not the expected order, since the three worst records get fewer balls.";
 }

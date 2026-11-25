@@ -2,6 +2,8 @@
    the 2027 "3-2-1" lottery and 2027 first-round pick ownership. */
 (function(){
 const GSR = window.GSR = {};
+const _me = document.currentScript || [...document.scripts].find(s=>/tools\/tools\.js/.test(s.src));
+GSR.BASE = _me ? _me.src.replace(/tools\/tools\.js.*$/,"") : "../";
 
 /* ---------- NBA teams ---------- */
 GSR.NBA = {
@@ -219,7 +221,7 @@ GSR.needFit = (needs, team, grp) => { const n = needs && needs[team]; if(!n||!gr
 /* ---------- prospect board (read from the main page so it stays current) ---------- */
 GSR.slug = s => s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
 GSR.loadBoard = async function(){
-  const h = await fetch("../index.html",{cache:"no-cache"}).then(r=>r.text());
+  const h = await fetch(GSR.BASE+"index.html",{cache:"no-cache"}).then(r=>r.text());
   const grab = (name) => { const m = h.match(new RegExp("const "+name+"\\s*=\\s*([\\[{][\\s\\S]*?[\\]}]);\\s*\\n")); return m ? JSON.parse(m[1]) : null; };
   const board = grab("BOARD") || [];
   GSR.TEAMCOL = grab("TEAMCOL") || {};
