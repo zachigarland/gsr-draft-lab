@@ -7,3 +7,10 @@ Clone this branch to /home/claude/work. Daily run:
 
 ## Tools pages
 The mock draft, board builder and lottery pages live on main under mock/, bigboard/, lottery/ and tools/. They read the player data from the main index.html at load time, so the daily refresh updates them automatically. tools_patch.py adds the site nav to the main page during each build.
+
+
+## Player pages
+players_build.py writes players/<slug>/index.html for every prospect, players/index.html and sitemap.xml. daily.py runs it after each rebuild, copies the output into /home/claude/gsr-draft-lab and stages it with git add. history.json gets one rank and stat snapshot per day for future movers charts.
+
+## Privacy
+No birthdates anywhere in public text. Some prospects are minors. Ages show as draft-night age only.

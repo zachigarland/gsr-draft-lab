@@ -39,23 +39,27 @@ CSS = """
 .rep .ccomps span{display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-family:var(--mono)}
 .rep .ccomps b{font-size:15px}
 .rep .more{all:unset;cursor:pointer;font-size:13px;font-weight:600;color:var(--accent,#e8590c);justify-self:start}
+
+.rep .more.plink{margin-left:16px;text-decoration:none}
 @media (max-width:720px){.rep .grid2{grid-template-columns:1fr}.rep .ccomps b{font-size:13px}.viewtog{margin-left:0}}
 """
 
 JS = r"""
 function teamTag(t){ const x=TEAMCOL[t]; if(!x) return ""; return `<span class="tm" style="background:${x[1]};color:${x[2]}" aria-hidden="true">${x[0]}</span>`; }
 function compsBox(p){ return `<div class="ccomps"><div><span>Ceiling</span><b>${esc(p.boom)}</b></div><div><span>Likely</span><b>${esc(p.proj)}</b></div><div><span>Floor</span><b>${esc(p.bust)}</b></div></div>`; }
+function pslug(n){ return n.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""); }
+function plink(p){ return `<a class="more plink" href="players/${pslug(p.name)}/">Full player page ›</a>`; }
 function report(p){
   const r=REPORTS[p.name]; if(!r) return "";
   const v=state.view||"scout", badges=`<div class="badges">${r.badges.map(b=>`<span class="badge">${esc(b)}</span>`).join("")}</div>`;
   const why=`<p class="why"><b>WHY NO. ${p.rank}</b>${esc(r.why)}</p>`;
-  if(v==="skim") return `<div class="rep">${badges}${why}${compsBox(p)}<button class="more" data-view="scout">Read the scouting report ›</button></div>`;
+  if(v==="skim") return `<div class="rep">${badges}${why}${compsBox(p)}<button class="more" data-view="scout">Read the scouting report ›</button>${plink(p)}</div>`;
   const role=`<div class="grid2"><div><h5>Offense</h5><p>${esc(r.off)}</p></div><div><h5>Defense</h5><p>${esc(r.def)}</p></div></div>`;
   const sw=`<div class="grid2"><div><h5>Strengths</h5><p>${esc(r.str)}</p></div><div><h5>Weaknesses</h5><p>${esc(r.weak)}</p></div></div><div><h5>Swing skill</h5><p>${esc(r.swing)}</p></div>`;
   const comps=`<div><h5>Comps</h5>${compsBox(p)}<p style="margin-top:8px">${esc(r.why_comp)}</p></div>`;
   const outs=`<div><h5>What outlets say</h5><p>${esc(r.outlets)}</p></div>`;
-  if(v==="scout") return `<div class="rep">${badges}${why}${role}${sw}${comps}${outs}<p class="slnote" style="margin:0">Report written Nov 22 to 24. The row above has the live stat line.</p><button class="more" data-view="deep">Deep Dive: stats, outlets, sources ›</button></div>`;
-  return `<div class="rep">${badges}${why}${role}${sw}${comps}${outs}</div>`;
+  if(v==="scout") return `<div class="rep">${badges}${why}${role}${sw}${comps}${outs}<p class="slnote" style="margin:0">Report written Nov 22 to 24. The row above has the live stat line.</p><button class="more" data-view="deep">Deep Dive: stats, outlets, sources ›</button>${plink(p)}</div>`;
+  return `<div class="rep">${badges}${why}${role}${sw}${comps}${outs}${plink(p)}</div>`;
 }
 """
 
