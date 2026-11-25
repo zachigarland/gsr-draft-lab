@@ -5,7 +5,7 @@ Usage: python3 players_build.py <out_root> "<Nov 25, 2026>" <2026-11-25>
 import json, os, re, sys, html, unicodedata
 W = os.path.dirname(os.path.abspath(__file__)) + '/'
 SITE = 'https://zachigarland.github.io/gsr-draft-lab/'
-V = '20261125c'
+V = '20261125d'
 TIERNAME = {'A': 'Tier A', 'B': 'Tier B', 'C': 'Tier C', 'D': 'Tier D', 'W': 'Watchlist'}
 OUTLETS = [('espn', 'ESPN'), ('br', 'Bleacher Report'), ('cbs', 'CBS Sports'), ('ndr', 'NBA Draft Room'),
            ('tk', 'Tankathon'), ('fs', 'FanSided'), ('ho', 'HoopObsession')]
@@ -207,7 +207,7 @@ def player_page(p, ctx):
                (f'<a href="../{slug(nxt["name"])}/">No. {nxt["rank"]} {esc(nxt["name"])} ›</a>' if nxt else '') + '</div>')
     out.append('</main><aside class="side">')
     out.append(f'''<div class="card"><h3>Use him in the tools</h3><div class="cta">
-      <a class="btn primary" href="../../mock/">Mock draft</a><a class="btn" href="../../bigboard/">Board builder</a><a class="btn" href="../../?p={s}">See him on the board</a></div></div>''')
+      <a class="btn primary" href="../../mock/">Mock draft</a><a class="btn" href="../../bigboard/">Board builder</a><a class="btn" href="../../?p={s}">See him on the board</a><a class="btn" href="../../compare/?p={s}">Compare him</a></div></div>''')
     def plist(title, ps):
         if not ps: return ''
         return f'<div class="card"><h3>{title}</h3>' + ''.join(
@@ -240,11 +240,78 @@ def players_index(board, TEAMS, txt, iso):
     return ''.join(out)
 
 def sitemap(board, iso):
-    urls = [('', 'daily'), ('players/', 'daily'), ('teams/', 'daily'), ('draft-picks/', 'daily'), ('mock/', 'weekly'), ('bigboard/', 'weekly'), ('lottery/', 'weekly'), ('about/', 'monthly')]
+    urls = [('', 'daily'), ('players/', 'daily'), ('stats/', 'daily'), ('compare/', 'weekly'), ('teams/', 'daily'), ('draft-picks/', 'daily'), ('mock/', 'weekly'), ('bigboard/', 'weekly'), ('lottery/', 'weekly'), ('about/', 'monthly')]
     urls += [(f'teams/{t}/', 'daily') for t in ['atl','bos','bkn','cha','chi','cle','dal','den','det','gsw','hou','ind','lac','lal','mem','mia','mil','min','nop','nyk','okc','orl','phi','phx','por','sac','sas','tor','uta','was']]
     urls += [(f'players/{slug(p["name"])}/', 'daily') for p in board]
     body = ''.join(f'  <url>\n    <loc>{SITE}{u}</loc>\n    <lastmod>{iso}</lastmod>\n    <changefreq>{c}</changefreq>\n  </url>\n' for u, c in urls)
     return f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{body}</urlset>\n'
+
+# ---------- data file, stats leaderboard ----------
+def player_data(board, R, E):
+    rows = []
+    for p in board:
+        sl, e, r = p.get('sl') or {}, E.get(p['name']) or {}, R.get(p['name'], {})
+        def rnd(v, n=1): return round(v, n) if isinstance(v, (int, float)) else None
+        rows.append({
+            'id': slug(p['name']), 'name': p['name'], 'rank': p['rank'], 'tier': p['tier'], 'team': p['team'], 'pos': p['pos'], 'grp': grp(p['pos']),
+            'ht': p.get('ht'), 'wt': p.get('wt'), 'cls': p.get('cls'), 'age': p.get('age'), 'age_est': bool(p.get('age_est')),
+            'lg': sl.get('lg') or ('NCAA' if e else None), 'pro': bool(sl.get('lg') and sl.get('lg') != 'NCAA'),
+            'g': sl.get('g'), 'mp': rnd(e.get('mp')), 'pts': sl.get('pts'), 'reb': sl.get('reb'), 'ast': sl.get('ast'), 'stl': sl.get('stl'), 'blk': sl.get('blk'),
+            'to': rnd(e.get('to')), 'fg': sl.get('fg'), 'tp': sl.get('tp'), 'tpa': rnd(e['tpa'] / e['g']) if e.get('g') and e.get('tpa') is not None else None,
+            'ft': sl.get('ft'), 'ts': rnd(e['ts'] * 100) if e.get('ts') else None,
+            'p36': rnd(e.get('p36')), 'r36': rnd(e.get('r36')), 'a36': rnd(e.get('a36')), 's36': rnd(e.get('s36')), 'b36': rnd(e.get('b36')),
+            'cons': p.get('consensus'), 'delta': p.get('delta'), 'outlets': p.get('outlets'),
+            'boom': p.get('boom'), 'proj': p.get('proj'), 'bust': p.get('bust'), 'badges': r.get('badges', []), 'why': r.get('why', ''),
+            'off': r.get('off', ''), 'def': r.get('def', ''), 'swing': r.get('swing', ''),
+            'ranks': {k: p.get(k) for k, _ in OUTLETS if isinstance(p.get(k), (int, float))}})
+    return rows
+
+STAT_COLS = [('g', 'G', 0), ('mp', 'MIN', 1), ('pts', 'PTS', 1), ('reb', 'REB', 1), ('ast', 'AST', 1), ('stl', 'STL', 1), ('blk', 'BLK', 1), ('to', 'TOV', 1),
+             ('fg', 'FG%', 1), ('tp', '3P%', 1), ('tpa', '3PA', 1), ('ft', 'FT%', 1), ('ts', 'TS%', 1)]
+
+def stats_page(rows, TEAMS, txt, iso):
+    url = SITE + 'stats/'
+    title = "2027 NBA Draft Prospect Stats: Sortable Leaderboard | Gar's Scouting Report"
+    desc = "Sortable 2026-27 stats for every prospect on Gar's 2027 NBA Draft big board. Filter by position, tier and league, and switch between per game and per 36 minutes."
+    ld = {"@context": "https://schema.org", "@type": "Dataset", "name": "2027 NBA Draft prospect stats", "url": url, "dateModified": iso,
+          "description": desc, "creator": {"@type": "Organization", "name": "Gar's Scouting Report"}}
+    out = [head(title, desc, url, 1, ld)]
+    out.append(f"""<style>
+.sb{{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}}
+.sb input[type=search]{{flex:1 1 220px}}
+#st th{{cursor:pointer;user-select:none}}
+#st th[aria-sort=descending]::after{{content:" ▼";font-size:9px}}#st th[aria-sort=ascending]::after{{content:" ▲";font-size:9px}}
+#st td.top{{background:#FFF1E8;font-weight:700}}
+#st td.pl a{{font-weight:700;color:var(--fg);text-decoration:none}}#st td.pl a:hover{{color:var(--accent)}}
+#st td.pl{{white-space:nowrap}}
+.cmpbar{{position:sticky;bottom:0;background:var(--navy);color:#fff;border-radius:10px 10px 0 0;padding:10px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:10px}}
+.cmpbar .btn{{background:var(--accent);border-color:var(--accent);color:#fff}}
+</style>
+<div class="hero"><div class="kicker">2027 NBA Draft</div><h1>Prospect Stats</h1>
+<p>2026-27 numbers for every player on my board. Click any column to sort, filter by position, tier or league, and check up to four players to compare them. Updated {esc(txt)}.</p></div>
+<div class="sb">
+  <input type="search" id="sq" placeholder="Filter by name or school" aria-label="Filter players">
+  <div class="seg" id="s-pos"><button data-v="" aria-pressed="true">All</button><button data-v="G">Guards</button><button data-v="W">Wings</button><button data-v="B">Bigs</button></div>
+  <div class="seg" id="s-lg"><button data-v="" aria-pressed="true">All leagues</button><button data-v="ncaa">College</button><button data-v="pro">Pro / intl</button></div>
+  <div class="seg" id="s-mode"><button data-v="pg" aria-pressed="true">Per game</button><button data-v="36">Per 36</button></div>
+  <div class="ctl"><label for="s-tier">Tier</label><select id="s-tier"><option value="">All tiers</option><option>A</option><option>B</option><option>C</option><option>D</option><option value="W">Watchlist</option></select></div>
+  <div class="ctl"><label for="s-min">Min games</label><select id="s-min"><option value="0">Any</option><option value="3">3+</option><option value="5" selected>5+</option><option value="8">8+</option></select></div>
+</div>""")
+    head_ = '<tr><th data-k="cmp" style="cursor:default"><span class="lab">Cmp</span></th><th data-k="rank" class="num">Rank</th><th data-k="name">Player</th><th data-k="pos">Pos</th><th data-k="age" class="num">Age</th>' + \
+        ''.join(f'<th data-k="{k}" class="num">{lab}</th>' for k, lab, _ in STAT_COLS) + '<th data-k="cons" class="num">Cons</th></tr>'
+    body = []
+    for r in rows:
+        cells = ''.join(f'<td class="num">{"" if r[k] is None else (r[k] if n == 0 else f"{r[k]:.1f}")}</td>' for k, _, n in STAT_COLS)
+        body.append(f'<tr data-id="{r["id"]}"><td><input type="checkbox" aria-label="Compare {esc(r["name"])}"></td><td class="num">{r["rank"]}</td>'
+                    f'<td class="pl"><span class="tier {r["tier"]}">{r["tier"]}</span> <a href="../players/{r["id"]}/">{esc(r["name"])}</a> <span class="small">{esc(r["team"])}</span></td>'
+                    f'<td>{esc(r["pos"])}</td><td class="num">{age_txt({"age": r["age"], "age_est": r["age_est"]})}</td>{cells}'
+                    '<td class="num">' + ('' if r['cons'] is None else '%.1f' % r['cons']) + '</td></tr>')
+    out.append(f'<div class="scrollx"><table class="tbl" id="st"><thead>{head_}</thead><tbody>{"".join(body)}</tbody></table></div>')
+    out.append('<div class="small" id="scount" style="margin-top:6px"></div>')
+    out.append('<div class="cmpbar" id="cmpbar" hidden><span id="cmpn"></span><a class="btn" id="cmpgo" href="../compare/">Compare</a></div>')
+    out.append('<div class="pagenote">College stats from ESPN through the latest refresh. Pro and international stats from RealGM and league sites, which do not always list minutes, turnovers or TS%. Per-36 numbers are for college players only. "Cons" is the average rank across ESPN, B/R, CBS and NBA Draft Room.</div>')
+    out.append(f'</div>\n<script src="../tools/tools.js?v={V}"></script>\n<script src="../tools/stats.js?v={V}"></script>\n</body>\n</html>\n')
+    return ''.join(out)
 
 def build(out_root, txt, iso):
     sys.path.insert(0, W)
@@ -261,6 +328,10 @@ def build(out_root, txt, iso):
         os.makedirs(os.path.join(pdir, s), exist_ok=True)
         open(os.path.join(pdir, s, 'index.html'), 'w').write(page)
     open(os.path.join(pdir, 'index.html'), 'w').write(players_index(board, TEAMS, txt, iso))
+    rows = player_data(board, ctx['R'], ctx['E'])
+    json.dump({'asof': txt, 'players': rows}, open(os.path.join(pdir, 'data.json'), 'w'), ensure_ascii=False)
+    sdir = os.path.join(out_root, 'stats'); os.makedirs(sdir, exist_ok=True)
+    open(os.path.join(sdir, 'index.html'), 'w').write(stats_page(rows, TEAMS, txt, iso))
     open(os.path.join(out_root, 'sitemap.xml'), 'w').write(sitemap(board, iso))
     # players who left the board keep their old page (so links do not break) but drop out of the sitemap
     return len(keep)

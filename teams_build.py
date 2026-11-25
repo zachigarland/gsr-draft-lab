@@ -5,7 +5,7 @@ tools/teams.js in the browser from ESPN standings and stats.
 Usage: python3 teams_build.py <out_root>"""
 import json, os, sys, html
 SITE = 'https://zachigarland.github.io/gsr-draft-lab/'
-V = '20261125c'
+V = '20261125d'
 esc = lambda s: html.escape(str(s), quote=True)
 
 NBA = {
