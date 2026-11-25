@@ -121,6 +121,7 @@ assert '—' not in re.sub(r'<script.*?</script>', '', h, flags=re.S) or True
 import ringer_patch; ringer_patch.apply(h, json.load(open('/home/claude/work/reports_all.json')), sub)
 import theme_patch; h = theme_patch.apply(h)
 import seo_patch; h = seo_patch.apply(h, json.load(open("/home/claude/work/board_current.json")), ISO, TXT)
+import tools_patch; h = tools_patch.apply(h)
 open('/home/claude/work/site/index.html', 'w').write(h)
 print('ok', len(h), 'DB27', len(DB27))
 h = open('/home/claude/work/site/index.html').read()
