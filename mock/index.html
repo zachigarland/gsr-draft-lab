@@ -45,6 +45,12 @@ details.add{margin-top:10px}
 details.add summary{cursor:pointer;color:var(--accent);font-weight:600}
 .addf{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .viewbanner{margin:12px 0}
+details.needs{margin-top:14px}
+details.needs summary{cursor:pointer;color:var(--accent);font-weight:600}
+.need{font-family:var(--mono);font-size:10.5px;padding:2px 6px;border-radius:4px;white-space:nowrap}
+.need.n1{background:#FDE7E4;color:#9B2B21}.need.n2{background:#FFF0E6;color:#A2420A}.need.n3{background:#EEF0F3;color:#4A5867}
+.fits{font-family:var(--mono);font-size:10px;background:#E5F4EC;color:#1E6E41;padding:1px 5px;border-radius:4px;margin-left:6px;vertical-align:2px}
+.needline{font-size:12.5px;color:var(--muted);margin-top:2px}
 .r2{font-family:var(--display);font-size:24px;color:var(--navy);margin:14px 0 4px;border-top:3px solid var(--navy);padding-top:8px}
 </style>
 </head>
@@ -72,12 +78,13 @@ details.add summary{cursor:pointer;color:var(--accent);font-weight:600}
         <div class="seg" id="o-len"><button data-v="16">Lottery (16)</button><button data-v="30" aria-pressed="true">First round (30)</button><button data-v="60">Two rounds (60)</button></div></div>
       <div class="ctl"><label for="o-team">You pick for</label><select id="o-team"><option value="ALL">Every team</option></select></div>
       <div class="ctl"><span class="lab">CPU drafts off</span>
-        <div class="seg" id="o-cpu"><button data-v="board" aria-pressed="true">My board</button><button data-v="cons">Consensus</button><button data-v="chaos">Chaos</button></div></div>
+        <div class="seg" id="o-cpu"><button data-v="board" aria-pressed="true">My board</button><button data-v="cons">Consensus</button><button data-v="need">Team need</button><button data-v="chaos">Chaos</button></div></div>
     </div>
     <div class="row" style="margin-top:14px;justify-content:space-between">
       <div class="small" id="ordernote">Loading standings and the board…</div>
       <div class="row"><button class="btn" id="resume" hidden>Resume saved mock</button><button class="btn primary" id="start" disabled>Start draft</button></div>
     </div>
+    <details class="needs" id="needsbox"><summary>Team needs for all 30 teams</summary><div id="needsnote" class="small" style="margin:8px 0"></div><div class="scrollx"><table class="tbl" id="needstbl"></table></div></details>
   </section>
 
   <div class="layout" id="draft" hidden>
@@ -109,14 +116,14 @@ details.add summary{cursor:pointer;color:var(--accent);font-weight:600}
       <button class="btn" id="again">Start a new mock</button>
     </div>
   </section>
-  <footer>Gar's Scouting Report · Draft order uses the 3-2-1 lottery rules and ESPN standings. Traded-pick rules as of <span id="ownasof"></span>. "Value" and "reach" compare the pick number to my board rank.</footer>
+  <footer>Gar's Scouting Report · Draft order uses the 3-2-1 lottery rules and ESPN standings. Traded-pick rules as of <span id="ownasof"></span>. "Value" and "reach" compare the pick number to my board rank. Team needs come from ESPN player stats.</footer>
 </div>
 
 <script src="../tools/tools.js"></script>
 <script>
 (async function(){
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-let BOARD=[], BY={}, ST, CL;
+let BOARD=[], BY={}, ST, CL, NEEDS=null;
 let M = null; // {order:[{pick,orig,owner}], picks:[id], team, cpu, customs:[], view}
 const filt = {q:"", pos:"", sort:"rank"};
 const segVal = id => ($(`#${id} [aria-pressed="true"]`)||{}).dataset?.v;
@@ -153,11 +160,14 @@ const taken = () => new Set(M.picks);
 const P = id => BY[id] || (M.customs||[]).find(c=>c.id===id);
 
 function cpuPick(){
-  const t = taken(); const sd = M.cpu==="chaos"?6:M.cpu==="cons"?2:1.2;
+  const t = taken(); const sd = M.cpu==="chaos"?6:M.cpu==="cons"?2:M.cpu==="need"?1.5:1.2;
+  const k = cur(), team = M.order[k] && M.order[k].owner;
   let best=null, bs=1e9;
   for(const p of BOARD){ if(t.has(p.id)) continue;
     const g = Math.sqrt(-2*Math.log(Math.random()||1e-9))*Math.cos(2*Math.PI*Math.random());
-    const s = (M.cpu==="board"?p.rank:p.cons) + g*sd; if(s<bs){bs=s;best=p;} }
+    let s = (M.cpu==="cons"?p.cons:p.rank) + g*sd;
+    if(M.cpu==="need" && NEEDS){ const fit = GSR.needFit(NEEDS, team, p.grp); s -= (fit===2?1:fit===1?0.5:0) * (1.5 + 0.08*(k+1)); }
+    if(s<bs){bs=s;best=p;} }
   return best && best.id;
 }
 function save(){ if(!M.view) GSR.store.set("gsrMock", M); }
@@ -183,7 +193,9 @@ function renderClock(){
   if(M.view){ $("#clock").innerHTML = `<div class="who"><b>Shared mock</b></div><button class="btn primary" id="mine">Make your own</button>`; $("#mine").onclick=()=>{location.href="./";}; return; }
   if(cur()>=total()){ $("#clock").innerHTML = `<div class="who"><b>Draft complete</b></div><button class="btn" id="undo">Undo last pick</button>`; $("#undo").onclick=undo; return; }
   const o = M.order[cur()], mine = isMine(cur());
-  $("#clock").innerHTML = `<div class="who">${GSR.nbaChip(o.owner)}<div><b>Pick ${o.pick}: ${GSR.teamName(o.owner)}</b>${o.owner!==o.orig?` <span class="small">via ${o.orig}</span>`:""}<div class="small">${mine?"Your pick. Hit Draft on a player.":"CPU team"}</div></div></div>
+  const nd = NEEDS && NEEDS[o.owner];
+  const needTxt = nd ? `<div class="needline">Needs: ${nd.order.slice(0,2).map((g,i)=>`<span class="need n${i+1}">${GSR.GRP[g]}</span>`).join(" ")} <span class="small">· best young ${GSR.GRP[nd.order[0]].toLowerCase()}s: ${nd.core[nd.order[0]].join(", ")||"none"}</span></div>` : "";
+  $("#clock").innerHTML = `<div class="who">${GSR.nbaChip(o.owner)}<div><b>Pick ${o.pick}: ${GSR.teamName(o.owner)}</b>${o.owner!==o.orig?` <span class="small">via ${o.orig}</span>`:""}<div class="small">${mine?"Your pick. Hit Draft on a player.":"CPU team"}</div>${needTxt}</div></div>
     <div class="row">${cur()?`<button class="btn" id="undo">Undo</button>`:""}${mine?`<button class="btn" id="auto">Auto pick</button>${M.team==="ALL"?`<button class="btn primary" id="tomine">Sim rest</button>`:""}`:`<button class="btn" id="next">Sim pick</button><button class="btn primary" id="tomine">${M.team==="ALL"?"Sim rest":"Sim to my pick"}</button>`}</div>`;
   $("#undo") && ($("#undo").onclick=undo);
   $("#auto") && ($("#auto").onclick=()=>draft(cpuPick()));
@@ -203,8 +215,9 @@ function renderAvail(){
     .filter(p=>!q || p.name.toLowerCase().includes(q) || (p.team||"").toLowerCase().includes(q));
   list.sort((a,b)=> filt.sort==="cons" ? (a.cons-b.cons) : (a.rank-b.rank));
   const can = !M.view && cur()<total() && isMine(cur());
+  const onTeam = cur()<total() ? M.order[cur()].owner : null;
   $("#avail").innerHTML = list.slice(0,120).map(p=>`<div class="pr"><div class="rk">${p.custom?"+":p.rank}</div><span class="tier ${p.tier||"X"}">${p.tier||"?"}</span>${GSR.schoolTag(p.team)}
-    <div><div class="pname">${GSR.esc(p.name)}</div><div class="pmeta">${GSR.esc(p.pos||"")}${p.ht?" · "+GSR.esc(p.ht):""}${p.age!=null?" · age "+GSR.ageTxt(p):""}${p.team?" · "+GSR.esc(p.team):""}</div>${GSR.statLine(p)?`<div class="sline">${GSR.statLine(p)}</div>`:""}</div>
+    <div><div class="pname">${GSR.esc(p.name)}${!M.view && onTeam && GSR.needFit(NEEDS,onTeam,p.grp)===2?`<span class="fits">fills top need</span>`:""}</div><div class="pmeta">${GSR.esc(p.pos||"")}${p.ht?" · "+GSR.esc(p.ht):""}${p.age!=null?" · age "+GSR.ageTxt(p):""}${p.team?" · "+GSR.esc(p.team):""}</div>${GSR.statLine(p)?`<div class="sline">${GSR.statLine(p)}</div>`:""}</div>
     <div style="text-align:right">${p.custom?"":`<div class="cons">cons ${Math.round(p.cons)}</div>`}<button class="btn primary draft" data-id="${p.id}" ${can?"":"disabled"}>Draft</button></div></div>`).join("") || `<div class="small">No players match.</div>`;
   $$("#avail .draft").forEach(b=>b.onclick=()=>draft(b.dataset.id));
 }
@@ -297,7 +310,16 @@ $("#start").onclick = ()=>start();
 $("#ownasof").textContent = GSR.OWN_ASOF;
 
 /* boot */
-[BOARD, ST] = await Promise.all([GSR.loadBoard(), GSR.loadStandings()]);
+let NR; [BOARD, ST, NR] = await Promise.all([GSR.loadBoard(), GSR.loadStandings(), GSR.loadNeeds()]);
+NEEDS = NR.needs;
+if(NEEDS){
+  $("#needsnote").innerHTML = `Pulled from ESPN's 2026-27 player stats (${NR.asof}). Production is weighted toward players 24 and under, since a 2027 pick matters most to the young core. Injured players count less because they are not producing right now. In "Team need" mode the CPU still drafts off my board, with a boost for the top need that grows later in the draft. Percentages compare a team to the league average at that spot.`;
+  $("#needstbl").innerHTML = `<tr><th>Team</th><th>Top need</th><th>Next</th><th>Strongest</th><th>Best young players at the top need</th></tr>` +
+    Object.keys(NEEDS).sort().map(t=>{ const n=NEEDS[t]; return `<tr><td>${GSR.nbaChip(t)}</td>${n.order.map((g,i)=>`<td><span class="need n${i+1}">${GSR.GRP[g]}</span> <span class="small mono">${Math.round(n.rel[g]*100)}%</span></td>`).join("")}<td class="small">${n.core[n.order[0]].join(", ")||"none"}</td></tr>`; }).join("");
+} else {
+  $('#o-cpu [data-v="need"]').disabled = true;
+  $("#needsnote").textContent = "Team needs did not load from ESPN, so Team need mode is off for now. Try a refresh.";
+}
 BOARD.forEach(p=>BY[p.id]=p);
 $("#bdate").textContent = GSR.boardDate || "the latest update";
 CL = GSR.classify(ST.teams);

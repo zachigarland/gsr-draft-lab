@@ -166,6 +166,56 @@ GSR.resolveOwners2 = function(order2, r1){
 };
 GSR.ownerLabel = p => p.owner===p.orig ? GSR.nbaChip(p.owner) : `${GSR.nbaChip(p.owner)} <span class="small">via ${p.orig}</span>`;
 
+/* ---------- team needs (for the CPU "Team need" mode) ----------
+   Built from ESPN's 2026-27 player stats. Each player's production (points, rebounds,
+   1.5x assists, 2x steals and blocks, minus turnovers, season totals) is weighted by age,
+   since a 2027 pick matters most to a team's young core: 24 and under counts fully,
+   25-27 at 85%, 28-30 at 60%, 31 and up at 35%. ESPN lists forwards only as "F", so a
+   forward who grabs 8+ rebounds per 36 minutes counts as a big, the rest as wings.
+   Need = the position group where a team falls furthest below the league average. */
+GSR.GRP = {G:"Guard", W:"Wing", B:"Big"};
+GSR.computeNeeds = function(athletes, idx){
+  const ageW = a => a==null?0.7 : a<=24?1 : a<=27?0.85 : a<=30?0.6 : 0.35;
+  const S = {}, players = {};
+  for(const x of athletes){
+    const a = x.athlete; let t = a.teamShortName; t = ESPN_ABBR[t]||t; if(!GSR.NBA[t]) continue;
+    const v = k => { const [c,i] = idx[k]; return +((x.categories.find(cc=>cc.name===c)||{values:[]}).values[i]) || 0; };
+    const min = v("minutes"); if(min<20) continue;
+    let g = a.position.abbreviation==="G" ? "G" : a.position.abbreviation==="C" ? "B" : (v("rebounds")/min*36 >= 8 ? "B" : "W");
+    const prod = v("points") + v("rebounds") + 1.5*v("assists") + 2*v("steals") + 2*v("blocks") - v("turnovers");
+    const val = Math.max(0,prod) * ageW(a.age);
+    (S[t] ||= {G:0,W:0,B:0})[g] += val;
+    ((players[t] ||= {G:[],W:[],B:[]})[g]).push([a.shortName||a.displayName, val, a.age]);
+  }
+  const L = {G:0,W:0,B:0}, teams = Object.keys(S);
+  teams.forEach(t=>["G","W","B"].forEach(g=>L[g]+=S[t][g]/teams.length));
+  const out = {};
+  for(const t of teams){
+    const rel = Object.fromEntries(["G","W","B"].map(g=>[g, L[g] ? S[t][g]/L[g] : 1]));
+    const order = ["G","W","B"].sort((a,b)=>rel[a]-rel[b]);
+    const core = Object.fromEntries(["G","W","B"].map(g=>[g, players[t][g].sort((a,b)=>b[1]-a[1]).slice(0,2).map(p=>p[0])]));
+    out[t] = {rel, order, core};
+  }
+  return out;
+};
+GSR.loadNeeds = async function(){
+  const cached = GSR.store.get("gsrNeeds", null);
+  if(cached && Date.now()-cached.when < 12*3600e3) return cached;
+  try{
+    const ctl = new AbortController(); const to = setTimeout(()=>ctl.abort(), 8000);
+    const j = await fetch("https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/statistics/byathlete?region=us&lang=en&contentorigin=espn&isqualified=false&page=1&limit=1000&season=2027&seasontype=2",{signal:ctl.signal}).then(r=>r.json());
+    clearTimeout(to);
+    const idx = {};
+    j.categories.forEach(c=>c.names.forEach((n,i)=>idx[n]=[c.name,i]));
+    const needs = GSR.computeNeeds(j.athletes, idx);
+    if(Object.keys(needs).length<30) throw new Error("short");
+    const res = {live:true, when:Date.now(), asof:new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}), needs};
+    GSR.store.set("gsrNeeds", res); return res;
+  }catch(e){ return {live:false, needs:null}; }
+};
+/* How much a prospect's position group lines up with what a team needs: 2 for the top need, 1 for the second. */
+GSR.needFit = (needs, team, grp) => { const n = needs && needs[team]; if(!n||!grp) return 0; const i = n.order.indexOf(grp); return i===0?2:i===1?1:0; };
+
 /* ---------- prospect board (read from the main page so it stays current) ---------- */
 GSR.slug = s => s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
 GSR.loadBoard = async function(){
