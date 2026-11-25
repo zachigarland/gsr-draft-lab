@@ -306,11 +306,6 @@
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://zachigarland.github.io/gsr-draft-lab/players/dylan-mingo/</loc>
-    <lastmod>2026-11-25</lastmod>
-    <changefreq>daily</changefreq>
-  </url>
-  <url>
     <loc>https://zachigarland.github.io/gsr-draft-lab/players/ethan-brown/</loc>
     <lastmod>2026-11-25</lastmod>
     <changefreq>daily</changefreq>
@@ -322,6 +317,11 @@
   </url>
   <url>
     <loc>https://zachigarland.github.io/gsr-draft-lab/players/billy-richmond-iii/</loc>
+    <lastmod>2026-11-25</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://zachigarland.github.io/gsr-draft-lab/players/dylan-mingo/</loc>
     <lastmod>2026-11-25</lastmod>
     <changefreq>daily</changefreq>
   </url>
