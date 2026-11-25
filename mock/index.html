@@ -194,7 +194,7 @@ function renderClock(){
   if(cur()>=total()){ $("#clock").innerHTML = `<div class="who"><b>Draft complete</b></div><button class="btn" id="undo">Undo last pick</button>`; $("#undo").onclick=undo; return; }
   const o = M.order[cur()], mine = isMine(cur());
   const nd = NEEDS && NEEDS[o.owner];
-  const needTxt = nd ? `<div class="needline">Needs: ${nd.order.slice(0,2).map((g,i)=>`<span class="need n${i+1}">${GSR.GRP[g]}</span>`).join(" ")} <span class="small">· best young ${GSR.GRP[nd.order[0]].toLowerCase()}s: ${nd.core[nd.order[0]].join(", ")||"none"}</span></div>` : "";
+  const needTxt = nd ? `<div class="needline">Needs: ${nd.order.slice(0,2).map((g,i)=>`<span class="need n${i+1}">${GSR.GRP[g]}</span>`).join(" ")} <span class="small">· top ${GSR.GRP[nd.order[0]].toLowerCase()}s now: ${nd.core[nd.order[0]].join(", ")||"none"}</span></div>` : "";
   $("#clock").innerHTML = `<div class="who">${GSR.nbaChip(o.owner)}<div><b>Pick ${o.pick}: ${GSR.teamName(o.owner)}</b>${o.owner!==o.orig?` <span class="small">via ${o.orig}</span>`:""}<div class="small">${mine?"Your pick. Hit Draft on a player.":"CPU team"}</div>${needTxt}</div></div>
     <div class="row">${cur()?`<button class="btn" id="undo">Undo</button>`:""}${mine?`<button class="btn" id="auto">Auto pick</button>${M.team==="ALL"?`<button class="btn primary" id="tomine">Sim rest</button>`:""}`:`<button class="btn" id="next">Sim pick</button><button class="btn primary" id="tomine">${M.team==="ALL"?"Sim rest":"Sim to my pick"}</button>`}</div>`;
   $("#undo") && ($("#undo").onclick=undo);
@@ -314,7 +314,7 @@ let NR; [BOARD, ST, NR] = await Promise.all([GSR.loadBoard(), GSR.loadStandings(
 NEEDS = NR.needs;
 if(NEEDS){
   $("#needsnote").innerHTML = `Pulled from ESPN's 2026-27 player stats (${NR.asof}). Production is weighted toward players 24 and under, since a 2027 pick matters most to the young core. Injured players count less because they are not producing right now. In "Team need" mode the CPU still drafts off my board, with a boost for the top need that grows later in the draft. Percentages compare a team to the league average at that spot.`;
-  $("#needstbl").innerHTML = `<tr><th>Team</th><th>Top need</th><th>Next</th><th>Strongest</th><th>Best young players at the top need</th></tr>` +
+  $("#needstbl").innerHTML = `<tr><th>Team</th><th>Top need</th><th>Next</th><th>Strongest</th><th>Their top players there now</th></tr>` +
     Object.keys(NEEDS).sort().map(t=>{ const n=NEEDS[t]; return `<tr><td>${GSR.nbaChip(t)}</td>${n.order.map((g,i)=>`<td><span class="need n${i+1}">${GSR.GRP[g]}</span> <span class="small mono">${Math.round(n.rel[g]*100)}%</span></td>`).join("")}<td class="small">${n.core[n.order[0]].join(", ")||"none"}</td></tr>`; }).join("");
 } else {
   $('#o-cpu [data-v="need"]').disabled = true;
