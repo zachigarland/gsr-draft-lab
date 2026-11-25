@@ -9,14 +9,14 @@
   const BASE = me ? me.src.replace(/tools\/shell\.js.*$/,"") : "/";
   const path = location.href.split(/[?#]/)[0];
   const NAV = [
-    ["", "Big Board"], ["players/", "Prospects"], ["teams/", "Teams"], ["draft-picks/", "Pick Tracker"], ["mock/", "Mock Draft"], ["bigboard/", "Board Builder"], ["lottery/", "Lottery"], ["about/", "About"]
+    ["", "Big Board"], ["players/", "Prospects"], ["stats/", "Stats"], ["compare/", "Compare"], ["teams/", "Teams"], ["draft-picks/", "Pick Tracker"], ["mock/", "Mock Draft"], ["bigboard/", "Board Builder"], ["lottery/", "Lottery"], ["about/", "About"]
   ];
   if(CONFIG.substack) NAV.push([CONFIG.substack, "Newsletter"]);
   const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const slug = s => s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
   const isCurrent = href => { if(/^https?:/.test(href)) return false; if(href==="") return path===BASE || path===BASE+"index.html"; return path.startsWith(BASE+href); };
 
-  const css = document.createElement("link"); css.rel="stylesheet"; css.href = BASE+"tools/shell.css?v=20261125c"; document.head.appendChild(css);
+  const css = document.createElement("link"); css.rel="stylesheet"; css.href = BASE+"tools/shell.css?v=20261125d"; document.head.appendChild(css);
 
   function mount(){
     const hd = document.createElement("header"); hd.className = "gsr-hd";
@@ -32,7 +32,7 @@
     const ft = document.createElement("footer"); ft.className = "gsr-ft";
     ft.innerHTML = `<div class="gsr-in">
       <div><b>Gar's Scouting Report</b><p>Independent NBA Draft scouting. Big boards, reports, comps and draft tools.</p><p><a href="https://x.com/NBATOPSCOUT" rel="noopener">@NBATOPSCOUT on X</a></p></div>
-      <div><b>Draft</b>${NAV.slice(0,7).map(([h,t])=>`<a href="${BASE+h}">${t}</a>`).join("")}</div>
+      <div><b>Draft</b>${NAV.slice(0,9).map(([h,t])=>`<a href="${BASE+h}">${t}</a>`).join("")}</div>
       <div><b>Site</b><a href="${BASE}about/">About and method</a>${CONFIG.substack?`<a href="${CONFIG.substack}" rel="noopener">Newsletter</a>`:""}<a href="${BASE}sitemap.xml">Sitemap</a></div>
       <p class="gsr-fine">Stats from ESPN, RealGM and league sites. Pick rules from the NBA, Hoops Rumors and RealGM. Not affiliated with the NBA or any team.</p>
     </div>`;

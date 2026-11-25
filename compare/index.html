@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Compare 2027 NBA Draft Prospects Side by Side | Gar's Scouting Report</title>
+<meta name="description" content="Compare up to four 2027 NBA Draft prospects side by side: rank, tier, size, age, stats, per-36 numbers, NBA comps, scouting report and outlet rankings.">
+<link rel="canonical" href="https://zachigarland.github.io/gsr-draft-lab/compare/">
+<meta property="og:title" content="Compare 2027 NBA Draft Prospects | Gar's Scouting Report">
+<meta property="og:description" content="Side-by-side prospect comparisons with stats, comps and scouting reports.">
+<meta property="og:image" content="https://zachigarland.github.io/gsr-draft-lab/og-nov23w.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tools/tools.css?v=20261125d">
+<script src="../tools/shell.js?v=20261125d" defer></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"2027 NBA Draft Prospect Compare","url":"https://zachigarland.github.io/gsr-draft-lab/compare/","applicationCategory":"SportsApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"isPartOf":{"@type":"WebSite","name":"Gar's Scouting Report","url":"https://zachigarland.github.io/gsr-draft-lab/"}}</script>
+<style>
+.pickers{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}
+@media (max-width:900px){.pickers{grid-template-columns:1fr 1fr}}
+.pk{position:relative}
+.pk input{width:100%}
+.pk .res{position:absolute;left:0;right:0;top:calc(100% + 4px);background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 22px rgba(11,34,57,.14);z-index:20;max-height:300px;overflow:auto}
+.pk .res button{display:block;width:100%;text-align:left;border:0;background:none;padding:7px 10px;cursor:pointer;font-size:14px}
+.pk .res button:hover{background:#FFF3EB}
+.pk .clr{position:absolute;right:6px;top:6px;border:0;background:none;cursor:pointer;color:var(--muted);font-size:16px}
+.ct{width:100%;border-collapse:collapse;background:#fff;table-layout:fixed}
+.ct th,.ct td{border-bottom:1px solid var(--line);padding:8px 10px;vertical-align:top;font-size:14px}
+.ct th{width:150px;text-align:left;font-family:var(--mono);font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);font-weight:500}
+.ct thead td{border-bottom:2px solid var(--navy)}
+.ct .nm{font-family:var(--display);font-size:28px;line-height:1;color:var(--navy);text-decoration:none}
+.ct .nm:hover{color:var(--accent)}
+.ct td.best{background:#FFF1E8;font-weight:700}
+.ct tr.sect td,.ct tr.sect th{background:var(--panel-2);font-family:var(--display);font-size:18px;letter-spacing:.3px;color:var(--navy);text-transform:none}
+.badges{display:flex;gap:4px;flex-wrap:wrap}
+.badge{border:1px solid var(--line);border-radius:999px;padding:2px 8px;font-size:12px;font-weight:600;background:#fff}
+@media (max-width:640px){.ct th{width:92px}.ct .nm{font-size:22px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div class="kicker">2027 NBA Draft</div>
+    <h1>Compare Prospects</h1>
+    <p>Pick two to four players. The best number in each row is highlighted. Share the link to send the comparison to someone.</p>
+  </div>
+  <div class="pickers" id="pickers"></div>
+  <div class="row" style="margin-bottom:10px"><button class="btn" id="share">Copy link</button><span class="small" id="hint"></span></div>
+  <div class="scrollx"><table class="ct" id="ct"></table></div>
+  <div class="pagenote">Stats from ESPN (college) and RealGM and league sites (pro and international). Per-36 numbers are for college players only. Scouting reports and comps by Gar's Scouting Report.</div>
+</div>
+<script src="../tools/tools.js?v=20261125d"></script>
+<script>
+(async function(){
+const G = window.GSR, $ = s => document.querySelector(s);
+const D = await fetch(G.BASE+"players/data.json",{cache:"no-cache"}).then(r=>r.json());
+const P = D.players, BY = Object.fromEntries(P.map(p=>[p.id,p]));
+let sel = (new URLSearchParams(location.search).get("p")||"").split(",").filter(id=>BY[id]).slice(0,4);
+if(!sel.length) sel = [P[0].id, P[1].id];
+const nz = s => s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
+function pickers(){
+  $("#pickers").innerHTML = [0,1,2,3].map(i=>{ const p = BY[sel[i]];
+    return `<div class="pk"><input type="search" data-i="${i}" placeholder="${p?"":"Add a player"}" value="${p?G.esc(p.name):""}" aria-label="Player ${i+1}">${p?`<button class="clr" data-i="${i}" aria-label="Remove ${G.esc(p.name)}">✕</button>`:""}<div class="res" hidden></div></div>`; }).join("");
+  document.querySelectorAll(".pk input").forEach(inp=>{
+    const res = inp.parentElement.querySelector(".res");
+    inp.onfocus = ()=>inp.select();
+    inp.oninput = ()=>{ const t = nz(inp.value.trim()); if(!t){ res.hidden=true; return; }
+      const hits = P.filter(p=>nz(p.name+" "+p.team).includes(t) && !sel.includes(p.id)).slice(0,8);
+      res.innerHTML = hits.map(p=>`<button data-id="${p.id}">${p.rank}. <b>${G.esc(p.name)}</b> <span class="small">${G.esc(p.pos)} · ${G.esc(p.team)}</span></button>`).join("") || `<div class="small" style="padding:8px">No match</div>`;
+      res.hidden = false;
+      res.querySelectorAll("button").forEach(b=>b.onmousedown=e=>{ e.preventDefault(); const i=+inp.dataset.i; if(i>=sel.length) sel.push(b.dataset.id); else sel[i]=b.dataset.id; update(); }); };
+    inp.onblur = ()=>setTimeout(()=>{ res.hidden=true; },150);
+  });
+  document.querySelectorAll(".pk .clr").forEach(b=>b.onclick=()=>{ sel.splice(+b.dataset.i,1); update(); });
+}
+const f1 = v => v==null ? "" : (+v).toFixed(1);
+function htIn(h){ const m = String(h||"").match(/(\d+)'(\d+(?:\.\d+)?)/); return m ? +m[1]*12 + +m[2] : null; }
+function table(){
+  const ps = sel.map(id=>BY[id]);
+  if(ps.length<2){ $("#hint").textContent = "Add at least two players."; } else $("#hint").textContent = "";
+  const cell = (fn, mode) => { // mode: "hi" higher is better, "lo" lower is better, null no highlight
+    const vals = ps.map(fn); const nums = vals.map(v=>typeof v==="number"?v:null).filter(v=>v!=null);
+    const best = mode && nums.length>1 ? (mode==="hi"?Math.max(...nums):Math.min(...nums)) : null;
+    return vals.map(v=>`<td class="${best!=null&&v===best&&nums.filter(x=>x===best).length<nums.length?"best":""}">${v==null||v===""?'<span class="small">-</span>':typeof v==="number"?(Number.isInteger(v)?v:f1(v)):v}</td>`).join("");
+  };
+  const row = (lab, fn, mode) => `<tr><th>${lab}</th>${cell(fn, mode)}</tr>`;
+  const txt = (lab, fn) => `<tr><th>${lab}</th>${ps.map(p=>`<td>${fn(p)||'<span class="small">-</span>'}</td>`).join("")}</tr>`;
+  const sect = lab => `<tr class="sect"><th colspan="${ps.length+1}">${lab}</th></tr>`;
+  $("#ct").innerHTML = `<thead><tr><th></th>${ps.map(p=>`<td><a class="nm" href="../players/${p.id}/">${G.esc(p.name)}</a><div class="small">${G.esc(p.pos)} · ${G.esc(p.team)}</div></td>`).join("")}</tr></thead><tbody>
+    ${row("Gar rank", p=>p.rank, "lo")}
+    ${txt("Tier", p=>`<span class="tier ${p.tier}">${p.tier}</span>`)}
+    ${row("Outlet consensus", p=>p.cons, "lo")}
+    ${row("Draft-night age", p=>p.age, "lo")}
+    ${row("Height", p=>{ const h=htIn(p.ht); return h; }, "hi").replace(/<td([^>]*)>(\d+(?:\.\d+)?)<\/td>/g,(m,a,v)=>`<td${a}>${Math.floor(v/12)}'${(v%12).toString().replace(/\.0$/,"")}"</td>`)}
+    ${row("Weight", p=>p.wt?+p.wt:null, null)}
+    ${txt("League", p=>G.esc(p.lg||""))}
+    ${sect("2026-27 per game")}
+    ${row("Games", p=>p.g, null)}${row("Minutes", p=>p.mp, null)}
+    ${row("Points", p=>p.pts, "hi")}${row("Rebounds", p=>p.reb, "hi")}${row("Assists", p=>p.ast, "hi")}
+    ${row("Steals", p=>p.stl, "hi")}${row("Blocks", p=>p.blk, "hi")}${row("Turnovers", p=>p.to, "lo")}
+    ${row("FG%", p=>p.fg, "hi")}${row("3P%", p=>p.tp, "hi")}${row("3PA per game", p=>p.tpa, "hi")}${row("FT%", p=>p.ft, "hi")}${row("TS%", p=>p.ts, "hi")}
+    ${sect("Per 36 minutes (college)")}
+    ${row("Points", p=>p.p36, "hi")}${row("Rebounds", p=>p.r36, "hi")}${row("Assists", p=>p.a36, "hi")}${row("Steals", p=>p.s36, "hi")}${row("Blocks", p=>p.b36, "hi")}
+    ${sect("Scouting report")}
+    ${txt("Why this rank", p=>G.esc(p.why))}
+    ${txt("Badges", p=>`<div class="badges">${(p.badges||[]).map(b=>`<span class="badge">${G.esc(b)}</span>`).join("")}</div>`)}
+    ${txt("Offense", p=>G.esc(p.off))}${txt("Defense", p=>G.esc(p.def))}${txt("Swing skill", p=>G.esc(p.swing))}
+    ${sect("NBA comps")}
+    ${txt("Ceiling", p=>G.esc(p.boom))}${txt("Likely", p=>G.esc(p.proj))}${txt("Floor", p=>G.esc(p.bust))}
+    ${sect("Outlet ranks")}
+    ${["espn","br","cbs","ndr","tk","fs","ho"].map(k=>row({espn:"ESPN",br:"Bleacher Report",cbs:"CBS Sports",ndr:"NBA Draft Room",tk:"Tankathon",fs:"FanSided",ho:"HoopObsession"}[k], p=>p.ranks[k]??null, "lo")).join("")}
+  </tbody>`;
+}
+function update(){ history.replaceState(null,"","?p="+sel.join(",")); pickers(); table(); }
+$("#share").onclick = ()=>G.copy(location.href, "Link copied");
+update();
+})();
+</script>
+</body>
+</html>
