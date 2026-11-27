@@ -226,22 +226,22 @@
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://zachigarland.github.io/gsr-draft-lab/players/jordan-smith-jr/</loc>
-    <lastmod>2026-11-26</lastmod>
-    <changefreq>daily</changefreq>
-  </url>
-  <url>
     <loc>https://zachigarland.github.io/gsr-draft-lab/players/ivan-kharchenkov/</loc>
     <lastmod>2026-11-26</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://zachigarland.github.io/gsr-draft-lab/players/amari-allen/</loc>
+    <loc>https://zachigarland.github.io/gsr-draft-lab/players/jordan-smith-jr/</loc>
     <lastmod>2026-11-26</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
     <loc>https://zachigarland.github.io/gsr-draft-lab/players/alijah-arenas/</loc>
+    <lastmod>2026-11-26</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://zachigarland.github.io/gsr-draft-lab/players/amari-allen/</loc>
     <lastmod>2026-11-26</lastmod>
     <changefreq>daily</changefreq>
   </url>
@@ -286,6 +286,11 @@
     <changefreq>daily</changefreq>
   </url>
   <url>
+    <loc>https://zachigarland.github.io/gsr-draft-lab/players/motiejus-krivas/</loc>
+    <lastmod>2026-11-26</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
     <loc>https://zachigarland.github.io/gsr-draft-lab/players/colben-landrew/</loc>
     <lastmod>2026-11-26</lastmod>
     <changefreq>daily</changefreq>
@@ -296,17 +301,17 @@
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://zachigarland.github.io/gsr-draft-lab/players/motiejus-krivas/</loc>
-    <lastmod>2026-11-26</lastmod>
-    <changefreq>daily</changefreq>
-  </url>
-  <url>
     <loc>https://zachigarland.github.io/gsr-draft-lab/players/thomas-haugh/</loc>
     <lastmod>2026-11-26</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
     <loc>https://zachigarland.github.io/gsr-draft-lab/players/ethan-brown/</loc>
+    <lastmod>2026-11-26</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://zachigarland.github.io/gsr-draft-lab/players/patrick-ngongba-ii/</loc>
     <lastmod>2026-11-26</lastmod>
     <changefreq>daily</changefreq>
   </url>
@@ -322,11 +327,6 @@
   </url>
   <url>
     <loc>https://zachigarland.github.io/gsr-draft-lab/players/dylan-mingo/</loc>
-    <lastmod>2026-11-26</lastmod>
-    <changefreq>daily</changefreq>
-  </url>
-  <url>
-    <loc>https://zachigarland.github.io/gsr-draft-lab/players/patrick-ngongba-ii/</loc>
     <lastmod>2026-11-26</lastmod>
     <changefreq>daily</changefreq>
   </url>
@@ -376,11 +376,6 @@
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://zachigarland.github.io/gsr-draft-lab/players/najai-hines/</loc>
-    <lastmod>2026-11-26</lastmod>
-    <changefreq>daily</changefreq>
-  </url>
-  <url>
     <loc>https://zachigarland.github.io/gsr-draft-lab/players/dash-daniels/</loc>
     <lastmod>2026-11-26</lastmod>
     <changefreq>daily</changefreq>
@@ -396,6 +391,11 @@
     <changefreq>daily</changefreq>
   </url>
   <url>
+    <loc>https://zachigarland.github.io/gsr-draft-lab/players/najai-hines/</loc>
+    <lastmod>2026-11-26</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
     <loc>https://zachigarland.github.io/gsr-draft-lab/players/david-mirkovic/</loc>
     <lastmod>2026-11-26</lastmod>
     <changefreq>daily</changefreq>
@@ -406,17 +406,17 @@
     <changefreq>daily</changefreq>
   </url>
   <url>
+    <loc>https://zachigarland.github.io/gsr-draft-lab/players/pryce-sandfort/</loc>
+    <lastmod>2026-11-26</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
     <loc>https://zachigarland.github.io/gsr-draft-lab/players/klark-reithauser/</loc>
     <lastmod>2026-11-26</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
     <loc>https://zachigarland.github.io/gsr-draft-lab/players/trey-mckenney/</loc>
-    <lastmod>2026-11-26</lastmod>
-    <changefreq>daily</changefreq>
-  </url>
-  <url>
-    <loc>https://zachigarland.github.io/gsr-draft-lab/players/pryce-sandfort/</loc>
     <lastmod>2026-11-26</lastmod>
     <changefreq>daily</changefreq>
   </url>
@@ -436,7 +436,7 @@
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://zachigarland.github.io/gsr-draft-lab/players/dame-sarr/</loc>
+    <loc>https://zachigarland.github.io/gsr-draft-lab/players/paul-mcneil/</loc>
     <lastmod>2026-11-26</lastmod>
     <changefreq>daily</changefreq>
   </url>
@@ -456,17 +456,12 @@
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://zachigarland.github.io/gsr-draft-lab/players/davion-thompson/</loc>
+    <loc>https://zachigarland.github.io/gsr-draft-lab/players/dame-sarr/</loc>
     <lastmod>2026-11-26</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
     <loc>https://zachigarland.github.io/gsr-draft-lab/players/shelton-henderson/</loc>
-    <lastmod>2026-11-26</lastmod>
-    <changefreq>daily</changefreq>
-  </url>
-  <url>
-    <loc>https://zachigarland.github.io/gsr-draft-lab/players/paul-mcneil/</loc>
     <lastmod>2026-11-26</lastmod>
     <changefreq>daily</changefreq>
   </url>
@@ -526,12 +521,12 @@
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://zachigarland.github.io/gsr-draft-lab/players/jeremy-fears-jr/</loc>
+    <loc>https://zachigarland.github.io/gsr-draft-lab/players/johann-grunloh/</loc>
     <lastmod>2026-11-26</lastmod>
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://zachigarland.github.io/gsr-draft-lab/players/johann-grunloh/</loc>
+    <loc>https://zachigarland.github.io/gsr-draft-lab/players/jeremy-fears-jr/</loc>
     <lastmod>2026-11-26</lastmod>
     <changefreq>daily</changefreq>
   </url>
@@ -556,6 +551,11 @@
     <changefreq>daily</changefreq>
   </url>
   <url>
+    <loc>https://zachigarland.github.io/gsr-draft-lab/players/john-blackwell/</loc>
+    <lastmod>2026-11-26</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
     <loc>https://zachigarland.github.io/gsr-draft-lab/players/juke-harris/</loc>
     <lastmod>2026-11-26</lastmod>
     <changefreq>daily</changefreq>
@@ -567,11 +567,6 @@
   </url>
   <url>
     <loc>https://zachigarland.github.io/gsr-draft-lab/players/cayden-boozer/</loc>
-    <lastmod>2026-11-26</lastmod>
-    <changefreq>daily</changefreq>
-  </url>
-  <url>
-    <loc>https://zachigarland.github.io/gsr-draft-lab/players/john-blackwell/</loc>
     <lastmod>2026-11-26</lastmod>
     <changefreq>daily</changefreq>
   </url>
