@@ -58,8 +58,9 @@ players_build.build(W + 'site', today_txt, today_iso)
 MAIN = '/home/claude/gsr-draft-lab/'
 if os.path.isdir(MAIN + '.git'):
     shutil.copytree(W + 'site/players', MAIN + 'players', dirs_exist_ok=True)
+    shutil.copytree(W + 'site/stats', MAIN + 'stats', dirs_exist_ok=True)
     shutil.copy(W + 'site/sitemap.xml', MAIN + 'sitemap.xml')
-    subprocess.run(['git', '-C', MAIN, 'add', 'players', 'sitemap.xml'], check=False)
+    subprocess.run(['git', '-C', MAIN, 'add', 'players', 'stats', 'sitemap.xml'], check=False)
     print('player pages copied to the main repo and staged')
 # rank and stat history, one snapshot per day, for movers charts later
 hist = {}

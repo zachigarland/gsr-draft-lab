@@ -94,7 +94,7 @@ sub('2026-27 college lines are ESPN team stats pages through Nov 13 (2 to 4 game
 sub('["NDR Sep",p.ndr]', '["NDR Nov",p.ndr]')
 sub('<h4>November move</h4>', '<h4>Move since Nov 18</h4>')
 
-sub('<div class="sub">5 new adds, watchlist included</div>', '<div class="sub">Watchlist included. New adds: Ethan Brown, Davion Thompson and Johann Grünloh</div>')
+sub('<div class="sub">5 new adds, watchlist included</div>', '<div class="sub">Watchlist included. New adds: Ethan Brown and Johann Grünloh</div>')
 # ---- report card ----
 sub('How my 2026 board is holding up three weeks into the NBA season.', 'How my 2026 board is holding up four weeks into the NBA season.')
 sub('6+ games and 15+ minutes a game (17 players).', '6+ games and 15+ minutes a game (18 players).')

@@ -224,7 +224,7 @@ def player_page(p, ctx):
 
 def players_index(board, TEAMS, txt, iso):
     url = SITE + 'players/'
-    title = "2027 NBA Draft Prospects: All 88 Scouting Reports | Gar's Scouting Report"
+    title = f"2027 NBA Draft Prospects: All {len(board)} Scouting Reports | Gar's Scouting Report"
     desc = "Every prospect on Gar's 2027 NBA Draft big board, with full scouting reports, stats, NBA comps and outlet rankings."
     ld = {"@context": "https://schema.org", "@type": "CollectionPage", "name": title, "url": url, "dateModified": iso}
     out = [head(title, desc, url, 1, ld).replace('../tools/', '../tools/')]
